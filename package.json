@@ -1,0 +1,8 @@
+{
+    "name":         "titan:Alfred",
+    "version":      "0.0.1",
+    "dependencies": {
+        "express": ">=3.x"
+    },
+    "description":  "A super simple, super thin module designed to provide a simple MVC architecture for web apps in Altair using express."
+}
