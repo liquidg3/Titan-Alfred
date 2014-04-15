@@ -1,6 +1,9 @@
 {
     "name":         "titan:Alfred",
     "version":      "0.0.1",
+    "altairDependencies": {
+        "altair:Adapters": ">=0.1.x"
+    },
     "dependencies": {
         "express": ">=3.x"
     },
