@@ -1,11 +1,14 @@
-
 define(['altair/facades/declare',
-        'altair/Lifecycle'
+        'altair/Lifecycle',
+        'apollo/_HasSchemaMixin',
+        'altair/plugins/config!./schema.json'
 ], function (declare,
-             Lifecycle) {
+             Lifecycle,
+             _HasSchemaMixin,
+             schema) {
 
-    return declare([Lifecycle], {
-
+    return declare([Lifecycle, _HasSchemaMixin], {
+        schema: schema
     });
 
 });

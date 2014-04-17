@@ -1,0 +1,12 @@
+{
+    "description": "This schema will apply to all adapters. Each adapter may mixin its own.",
+    "properties":    {
+        "port": {
+            "type":    "int",
+            "options": {
+                "label":        "Port",
+                "default": 80
+            }
+        }
+    }
+}
