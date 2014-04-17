@@ -18,7 +18,6 @@ define(['altair/facades/declare',
                res.send('Hello World');
             });
 
-
             this._app.use(function(err, req, res, next) {
                console.error(err.stack);
                 res.send(500, 'Something Broke!');
