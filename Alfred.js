@@ -37,7 +37,7 @@ define(['altair/facades/declare',
 
             if(a) {
                 //startup the server
-                a.startup().then(hitch(a, 'execute')).otherwise(function (err) {
+                a.execute().otherwise(function (err) {
                     console.dir(err);
                 });
 
