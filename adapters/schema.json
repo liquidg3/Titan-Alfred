@@ -5,7 +5,7 @@
             "type":    "int",
             "options": {
                 "label":        "Port",
-                "default": 80
+                "default": 3000
             }
         }
     }
