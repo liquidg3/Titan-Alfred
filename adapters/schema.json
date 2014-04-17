@@ -2,7 +2,7 @@
     "description": "This schema will apply to all adapters. Each adapter may mixin its own.",
     "properties":    {
         "port": {
-            "type":    "int",
+            "type":    "integer",
             "options": {
                 "label":        "Port",
                 "default": 3000
