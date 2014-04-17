@@ -31,6 +31,8 @@ define(['altair/facades/declare',
 
             this.deferred = new this.Deferred();
 
+            console.log('starting alfred on port', this.get('port'));
+
             this._app.listen(this.get('port'), function () {
 
             });
