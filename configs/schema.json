@@ -1,0 +1,11 @@
+{
+    "properties":    {
+        "autostart": {
+            "type": "boolean",
+            "options": {
+                "label": "Autostart",
+                "description": "Should I launch a web server on load?"
+            }
+        }
+    }
+}

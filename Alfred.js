@@ -10,12 +10,16 @@
  */
 define(['altair/facades/declare',
         'altair/facades/hitch',
-        'altair/modules/adapters/mixins/_HasAdaptersMixin'
+        'lodash',
+        'altair/modules/adapters/mixins/_HasAdaptersMixin',
+        'altair/modules/commandcentral/mixins/_HasCommandersMixin'
 ], function (declare,
              hitch,
-             _HasAdaptersMixin) {
+             _,
+             _HasAdaptersMixin,
+             _HasCommandersMixin) {
 
-    return declare([_HasAdaptersMixin], {
+    return declare([_HasAdaptersMixin, _HasCommandersMixin], {
 
         startup: function (options) {
 
@@ -33,18 +37,30 @@ define(['altair/facades/declare',
 
         execute: function () {
 
-            var a = this.get('selectedAdapter');
-
-            if(a) {
-                //startup the server
-                a.execute().otherwise(function (err) {
-                    console.dir(err);
-                });
-
+            if(this.get('autostart')) {
+                this.log('autostarting server');
+                this.startupServer();
             }
 
-
             return this.inherited(arguments);
+        },
+
+        startupServer: function (options) {
+
+            var a = this.adapter();
+            this.log('starting server using ' + a.name);
+            return a.execute();
+
+        },
+
+        teardownServer: function () {
+        },
+
+        refreshRegisteredRoutes: function () {
+
+            return this.emit('register-routes').then(function (routes) {
+                return _.flatten(routes);
+            });
         }
 
     });

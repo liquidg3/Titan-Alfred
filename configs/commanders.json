@@ -1,0 +1,16 @@
+{
+    "alfred": {
+
+        "path":         "commanders/Commander",
+        "description":  "You personal web server",
+        "label":        "Alfred",
+        "commands": {
+
+            "start": {
+                "label": "Start a web server",
+                "description": "",
+                "aliases": ["go"]
+            }
+        }
+    }
+}

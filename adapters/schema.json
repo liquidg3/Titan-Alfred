@@ -4,8 +4,8 @@
         "port": {
             "type":    "integer",
             "options": {
-                "label":        "Port",
-                "default": 3000
+                "label":   "Port",
+                "default": 8080
             }
         }
     }
