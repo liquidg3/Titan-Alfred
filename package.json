@@ -2,10 +2,17 @@
     "name":         "titan:Alfred",
     "version":      "0.0.1",
     "altairDependencies": {
-        "altair:Adapters": ">=0.1.x"
+        "altair:Adapters": ">=0.1.x",
+        "altair:CommandCentral": ">=0.1.x"
     },
     "dependencies": {
         "express": ">=3.x"
+    },
+    "events": {
+        "register-routes": "Register all the web routes you want handeled using my simple MVC approach",
+        "did-receive-request": "A request just came in, your chance to do something special",
+        "will-send-response": "I'm about to send back a response",
+        "did-send-response": "I have sent a response to the end user"
     },
     "description":  "A super simple, super thin module designed to provide a simple MVC architecture for web apps in Altair using express."
 }

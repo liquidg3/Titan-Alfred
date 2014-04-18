@@ -1,12 +1,15 @@
 define(['altair/facades/declare',
+        'altair/facades/hitch',
         'altair/plugins/node!express',
+        'altair/plugins/node!http',
         './_Base'
 ], function (declare,
+             hitch,
              express,
+             http,
              _Base) {
 
     return declare([_Base], {
-
 
         _app:       null,
         _server:    null,
@@ -18,10 +21,11 @@ define(['altair/facades/declare',
                res.send('Hello World');
             });
 
-            this._app.use(function(err, req, res, next) {
-               console.error(err.stack);
+            this._app.use(hitch(this, function(err, req, res, next) {
+                this.module.log(err);
                 res.send(500, 'Something Broke!');
-            });
+            }));
+
 
             return this.inherited(arguments);
 
@@ -31,11 +35,22 @@ define(['altair/facades/declare',
 
             this.deferred = new this.Deferred();
 
-            console.log('starting alfred on port', this.get('port'));
+            this.module.log('starting alfred on port ' + this.get('port'));
 
-            this._app.listen(this.get('port'), function () {
+            try {
 
-            });
+                this._server = http.createServer(this._app);
+                this._server.on('error', hitch(this, function (err) {
+                    this.module.log(err);
+                    this.deferred.reject(err);
+                }));
+
+                this._server.listen(this.get('port'));
+
+            } catch (e) {
+                this.module.log(e);
+                this.deferred.reject(e);
+            }
 
             return this.inherited(arguments);
         }
