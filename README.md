@@ -34,3 +34,37 @@ Create an /path/to/any/directory and drop this app.json into it.
     }
 }
 ```
+
+## Structure
+From the root directory you selected to configure your routes, you will need a few folders.
+
+```
+- /
+    - routes.json
+    - controllers
+        - index.js ( controller for root page )
+        - user.js
+        - admin.js
+    - public
+        - js
+            - global.js ( this will be included on every layout )
+        - css
+        - less
+            - index.less
+            - admin
+                - dashboard.less ( admin layout dashboard specific stylesheet )
+            - layouts
+                - front.less ( all front layout )
+                - user.less
+                - admin.less
+    - views
+        - admin
+            - dashboard.ejs
+        - index
+            - index.ejs
+            - login.ejs
+        - layouts
+            - admin.ejs ( view for admin layouts )
+            - user.ejs
+            - front.ejs
+```
