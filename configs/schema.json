@@ -1,10 +1,18 @@
 {
-    "properties":    {
+    "description": "Settings for Alfred",
+    "properties": {
         "autostart": {
-            "type": "boolean",
+            "type":    "boolean",
             "options": {
-                "label": "Autostart",
+                "label":       "Autostart",
                 "description": "Should I launch a web server on load?"
+            }
+        },
+
+        "defaultStrategy": {
+            "type": "select",
+            "options": {
+                "label":  "Webserver"
             }
         }
     }

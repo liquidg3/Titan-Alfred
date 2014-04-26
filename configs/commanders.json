@@ -9,7 +9,15 @@
             "start": {
                 "label": "Start a web server",
                 "description": "",
-                "aliases": ["go"]
+                "aliases": ["go"],
+                "schema": {
+                    "strategy": {
+                        "type": "select",
+                        "options": {
+                            "label": "Web server"
+                        }
+                    }
+                }
             }
         }
     }

@@ -3,7 +3,7 @@
 A super simple, super thin module designed to provide a simple MVC architecture for web apps in Altair using express.
 
 ## Configuring routes
-Create an /path/to/any/directory and drop this routes.json into it.
+Create an /path/to/any/directory and drop this app.json into it.
 
 ```json
 {

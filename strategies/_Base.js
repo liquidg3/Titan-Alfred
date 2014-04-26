@@ -8,7 +8,7 @@ define(['altair/facades/declare',
              schema) {
 
     return declare([Lifecycle, _HasSchemaMixin], {
-        schema: schema
+        _schema: schema
     });
 
 });

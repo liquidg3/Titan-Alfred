@@ -2,13 +2,15 @@
     "name":         "titan:Alfred",
     "version":      "0.0.1",
     "altairDependencies": {
-        "altair:Adapters": ">=0.1.x",
-        "altair:CommandCentral": ">=0.1.x"
+        "altair:CommandCentral": ">=0.0.x",
+        "liquidfire:Onyx":       ">=0.0.x"
     },
     "dependencies": {
-        "express": ">=3.x"
+        "express":          ">=3.x",
+        "less":             ">=1.x"
     },
     "events": {
+        "register-server-strategies": "Tell me all about the strategies you have.",
         "register-routes": "Register all the web routes you want handeled using my simple MVC approach",
         "did-receive-request": "A request just came in, your chance to do something special",
         "will-send-response": "I'm about to send back a response",
