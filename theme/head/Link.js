@@ -35,14 +35,17 @@ define(['altair/facades/declare',
                         d.reject(err);
                     } else {
 
-                        less.render(contents.toString(), {}, function (err, results) {
+
+                        less.render(contents.toString(), {
+                            paths: [ pathUtil.dirname(path) ]
+                        }, function (err, results) {
 
                             if(err) {
                                 d.reject(err);
                             } else {
 
-                                path    = path.replace('/less/', '/css/').replace('.less', '.css');
-                                _item   = _item.replace('/less/', '/css/').replace('.less', '.css');
+                                path    = path.replace('/less/', '/_compiled/').replace('.less', '.css');
+                                _item   = _item.replace('/less/', '/_compiled/').replace('.less', '.css');
 
                                 mkdirp(pathUtil.dirname(path), function (err) {
 

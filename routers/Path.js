@@ -1,24 +1,45 @@
 define(['altair/facades/declare',
         'altair/plugins/node!path',
         'lodash',
+        'altair/Lifecycle',
         'altair/facades/hitch',
         'altair/facades/all',
         'altair/facades/glob'
 ], function (declare,
              pathUtil,
              _,
+             Lifecycle,
              hitch,
              all,
              glob) {
 
-    return declare(null, {
+    return declare([Lifecycle], {
 
         //cache controllers by name
         _controllersByName: null,
-        _validExtensions: ['less', 'js', 'css'],
+        _validExtensions:   ['less', 'js', 'css'],
+        _controllerFoundry: null,
 
-        constructor: function () {
-            this._controllersByName = {};
+        startup: function (options) {
+
+            var _options = options || this.options || {};
+
+            //if there is no controller foundry, lets create one
+            if(!_options.controllerFoundry) {
+
+                this.deferred = this.forge('../foundries/Controller').then(this.hitch(function (foundry) {
+                    this._controllerFoundry = foundry;
+                    return this;
+                }));
+
+            } else {
+                this._controllerFoundry = _options.controllerFoundry;
+            }
+
+            this._controllersByName = _options.controllersByName || {};
+
+            return this.inherited(arguments);
+
         },
 
         /**
@@ -39,7 +60,6 @@ define(['altair/facades/declare',
                 path = path + '/';
             }
 
-
             //dependency injection
             if(options) {
                 _.each(options, function (value, key) {
@@ -55,19 +75,24 @@ define(['altair/facades/declare',
                     return;
                 }
 
-                this.log('loading', config.name);
-
                 //clone the config so we never mutate it
-                var _config = _.clone(config);
+                var _config = _.clone(config, true);
+
                 _config.path = path;
 
-                //run rest of generate sequence
-                this.attachControllers(path, _config.routes, controllerOptions)
-                    .then(this.hitch('attachMedia', path, _config.routes))
+                this.log('loading', config.name);
+
+                _.each(_config.routes, function (route, url) {
+                    route.url = url;
+                });
+
+                this.attachControllers(path, _config.vendor, _config.routes, controllerOptions)
                     .then(this.hitch('attachLayout', path, _config.routes))
                     .then(this.hitch('attachViews', path, _config.routes))
+                    .then(this.hitch('attachMedia', path, _config.routes))
                     .then(hitch(d, 'resolve', _config))
-                    .otherwise(hitch(d, 'reject'));
+                             .otherwise(hitch(d, 'reject'));
+
 
             }));
 
@@ -84,69 +109,76 @@ define(['altair/facades/declare',
          * @param options
          * @returns {*|Promise}
          */
-        attachControllers: function (path, routes, options) {
+        attachControllers: function (path, vendor, routes, options) {
 
             var list = [];
 
             //setup routes with real callbacks
-            _.each(routes, function (value, key) {
+            _.each(routes, function (route, key) {
 
-                var callbackParts   = value.action.split('::'),
-                    parent,
-                    action          = callbackParts[1],
-                    controller       = pathUtil.join(path, callbackParts[0]),
-                    controllerName  = callbackParts[0],
-                    attach          = this.hitch(function (controller) {
+                //attach the controller to the route.. if an error occurs, log it and delete the route
+                var d = new this.Deferred();
+                list.push(d);
 
-                        if(!controller[action]) {
-                            delete routes[key];
-                            this.log(new Error(controller + ' is missing action ' + action + '(e) for route "' + key + '"'));
-                        } else {
-                            this.log('attaching route ' + key + ' to callback ' + value.action );
-                            routes[key].callback    = hitch(controller, action);
-                            routes[key].controller  = controller;
-                            routes[key].action      = action;
-                        }
+                //attach the controler
+                this.attachControllerToRoute(path, vendor, route, options).then(function (route) {
 
-                    });
+                    d.resolve(routes);
 
-                //we have already created a controller by this name
-                if(this._controllersByName[controllerName]) {
-                    attach(this._controllersByName[controllerName]);
-                }
-                //someone supplied a nexus id
-                else if(callbackParts[0].search(':') > -1) {
-                    parent = this.nexus(callbackParts[0]);
-                    routes[key].action = hitch(parent, action);
-                }
-                //we have not instantiated this controller yet
-                else {
+                }).otherwise(this.hitch(function (err) {
 
+                    //if it fails, log it, but keep going
+                    this.log(err);
+                    d.reject(routes);
 
-                    //forge a controller
-                    list.push(this.foundry(controller, options, function (Controller, options) {
-
-                        //save the controllers name (Index, User, etc.)
-                        var c            = new Controller(options);
-                        c.name           = controllerName;
-
-                        return c;
-
-                    }).then(this.hitch(function (c) {
-
-                       //cache
-                        this._controllersByName[c.name] = c;
-                        attach(c);
-
-                    })));
-
-                }
+                }));
 
             }, this);
 
             return all(list).then(function () {
                 return routes;
             });
+
+        },
+
+        attachControllerToRoute: function (path, vendor, route, options) {
+
+            var foundry         = this._controllerFoundry,
+                deferred        = new this.Deferred(),
+                action          = route.action.split('::').pop(),//action comes in form controlle/Name::action
+                name            = foundry.nameForRoute(vendor, route),
+                attach          = this.hitch(function (controller) {
+
+                    if(!controller[action]) {
+                        deferred.reject( new Error(controller + ' is missing action ' + action + '(e) for route "' + route.url + '"'));
+                    } else {
+                        this.log('attaching route ' + route.url + ' to callback ' + route.action );
+                        route.callback    = hitch(controller, action);
+                        route.controller  = controller;
+                        route.action      = action;
+                        deferred.resolve(route);
+                    }
+
+                });
+
+
+            //de we have a version of this already?
+            if(this._controllersByName[name]) {
+
+                attach(this._controllersByName[name]);
+
+            }
+            //build new controller
+            else {
+
+                this._controllerFoundry.buildForRoute(path, vendor, route, options).then(function (controller) {
+                    attach(controller);
+                });
+
+            }
+
+            return deferred;
+
 
         },
 
@@ -161,17 +193,18 @@ define(['altair/facades/declare',
 
             var list = [];
 
-            _.each(routes, function (map, uri) {
+            _.each(routes, function (route) {
 
-                var name        = map.controller.name.split('/').pop().toLowerCase(),
+                var name        = route.layout || 'front',
+                    predicate   = '{' + this._validExtensions.join(',') + '}',
                     d           = new this.Deferred(),
                     candidates  = [
-                    path + 'public/*/' + name + '.{' + this._validExtensions.join(',') + '}',
-                    path + 'public/*/' + name + '/' + map.action + '.{' + this._validExtensions.join(',') + '}'
+                    path + 'public/' + predicate + '/*.' + predicate,
+                    path + 'public/' + predicate + '/' + name + '/*.' + predicate
                 ];
 
                 list.push(d);
-                map.media = {};
+                route.media = {};
 
                 glob(candidates).then(this.hitch(function (matches) {
 
@@ -180,11 +213,11 @@ define(['altair/facades/declare',
 
                         var ext = url.split('.').pop();
 
-                        if(!map.media[ext]) {
-                            map.media[ext] = [];
+                        if(!route.media[ext]) {
+                            route.media[ext] = [];
                         }
 
-                        map.media[ext].push(url.replace(path, ''));
+                        route.media[ext].push(url.replace(path, ''));
 
                     });
 
@@ -212,9 +245,9 @@ define(['altair/facades/declare',
             //loop through each rout and glob for candidates
             var list = [];
 
-            _.each(routes, function (map, uri) {
+            _.each(routes, function (route) {
 
-                var name        = map.controller.name.split('/').pop().toLowerCase(),
+                var name        = route.controller.name.split('/').pop().toLowerCase(),
                     d           = new this.Deferred(),
                     candidates  = [
                         path + 'views/layout.*',
@@ -225,7 +258,7 @@ define(['altair/facades/declare',
 
                     //attach layout
                     if(matches.length > 0) {
-                        map.layout = matches.pop().replace(path, '');
+                        route.layout = matches.pop().replace(path, '');
                     }
 
                     d.resolve();
@@ -252,10 +285,10 @@ define(['altair/facades/declare',
             //loop through each rout and glob for candidates
             var list = [];
 
-            _.each(routes, function (map, uri) {
+            _.each(routes, function (route) {
 
-                var name        = map.controller.name.split('/').pop().toLowerCase(),
-                    action      = map.action,
+                var name        = route.controller.name.split('/').pop().toLowerCase(),
+                    action      = route.action,
                     d           = new this.Deferred(),
                     candidates  = [
                         path + 'views/' + name + '.*',
@@ -266,7 +299,7 @@ define(['altair/facades/declare',
 
                     //attach layout
                     if(matches.length > 0) {
-                        map.view = matches.pop().replace(path, '');
+                        route.view = matches.pop().replace(path, '');
                     }
 
                     d.resolve();
@@ -282,6 +315,7 @@ define(['altair/facades/declare',
 
 
         }
+
 
 
     });

@@ -5,6 +5,7 @@ define(['altair/facades/declare',
         'altair/facades/when',
         'altair/facades/all',
         'altair/facades/hitch',
+        'altair/facades/mixin',
         'altair/Deferred'
 ], function (declare,
             HeadScript,
@@ -13,6 +14,7 @@ define(['altair/facades/declare',
             when,
             all,
             hitch,
+            mixin,
             Deferred) {
 
     "use strict";
@@ -24,12 +26,14 @@ define(['altair/facades/declare',
         _headScript:null,
         _headLink:  null,
         _body:      null,
+        context:    null,
 
         _renderer:      null,
         _renderLayout:  true,
 
         constructor: function (basePath, layout, renderer, options) {
 
+            this.context       = (options && options.layoutContext) ? options.layoutContext : {};
             this._basePath      = basePath || '';
             this._layout        = layout || 'views/layout';
             this._headLink      = (options && options.headLink) || new HeadLink(basePath, renderer);
@@ -75,6 +79,14 @@ define(['altair/facades/declare',
             return this;
         },
 
+        set: function (name, value) {
+            this.context[name] = value;
+        },
+
+        get: function (name, defaultValue) {
+            return this.context[name] || defaultValue;
+        },
+
         render: function () {
 
             var d,
@@ -89,6 +101,7 @@ define(['altair/facades/declare',
                 };
 
                 d = all(context).then(hitch(this, function (context) {
+                    context = mixin(this.context, context);
                     return this._renderer.render(this._basePath + this._layout, context);
                 }));
 

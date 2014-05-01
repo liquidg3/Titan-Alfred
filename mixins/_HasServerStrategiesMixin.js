@@ -18,7 +18,7 @@ define(['altair/facades/declare',
         },
 
         /**
-         * Report back our server strategies
+         * Report back our server strategies. we do not instantiate them
          *
          * @param e
          * @returns {*|Promise}
@@ -28,8 +28,8 @@ define(['altair/facades/declare',
             return this.parseConfig('configs/web-server-strategies').then(this.hitch(function (strategies) {
 
                 _.each(strategies, function (strategy, index, strategies) {
-                    if(strategy.search('::') === -1) {
-                        strategies[index] = this.name + '::' + strategy;
+                    if(strategy.search(':') === -1) {
+                        strategies[index] = this.name + '/' + strategy;
                     }
                 }, this);
 

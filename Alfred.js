@@ -1,5 +1,5 @@
 /**
- * Bringing a simple MVC environment for building web apps to Altair
+ * Bringing a simple MVC environment for building web apps in Altair
  *
  * @author:     Jon Hemstreet, Taylor Romero
  * @license:    MIT
@@ -13,12 +13,22 @@ define(['altair/facades/declare',
         'lodash',
         'apollo/_HasSchemaMixin',
         'altair/modules/commandcentral/mixins/_HasCommandersMixin',
-        './mixins/_HasServerStrategiesMixin'
+        './mixins/_HasServerStrategiesMixin',
+        'require',
+        './extensions/Model',
+        './extensions/Widget',
+        './extensions/WidgetRender',
+        './extensions/WidgetSchema'
 ], function (declare,
              _,
              _HasSchemaMixin,
              _HasCommandersMixin,
-             _HasServerStrategiesMixin) {
+             _HasServerStrategiesMixin,
+             require,
+             ModelExtension,
+             WidgetExtension,
+             WidgetRender,
+             WidgetSchema) {
 
     return declare([_HasSchemaMixin, _HasCommandersMixin, _HasServerStrategiesMixin], {
 
@@ -26,11 +36,22 @@ define(['altair/facades/declare',
         _strategies:    null,
         _activeServers: null,
 
+        //during startup, lets add some extensions to make all the MVC functionality work beautifully
         startup: function (options) {
 
-            var _options = options || this.options;
+            var _options        = options || this.options || {},
+                cartridge       = _options.extensionCartridge || this.nexus('cartridges/Extension'),
+                model           = _options.modelExtension || new ModelExtension(cartridge),
+                widget          = _options.widgetExtension || new WidgetExtension(cartridge),
+                widgetRender    = _options.widgetRenderExtension || new WidgetRender(cartridge),
+                widgetSchema    = _options.widgetSchemaExtension || new WidgetSchema(cartridge);
 
             this._activeServers = [];
+
+            //drop in new extensions
+            this.deferred = cartridge.addExtensions([
+                model, widget, widgetRender, widgetSchema
+            ]);
 
             return this.inherited(arguments);
 
@@ -58,7 +79,7 @@ define(['altair/facades/declare',
             var _options = options || {};
 
             //create a router
-            return this.foundry(_options.router || 'routers/Path').then(function (router) {
+            return this.forge(_options.router || 'routers/Path').then(function (router) {
 
                 //generate populated routes (see strategies/README.md)
                 return router.generateAppConfig(_options);
@@ -68,11 +89,25 @@ define(['altair/facades/declare',
                 //pass the newly generated routes our server strategy
                 _options = app;
 
+                var _paths = {};
+
+                //map the vendor
+                if(!_options.vendor) {
+                    throw new Error('You must set a vendor in your app config.');
+                }
+
+                //include paths
+                _paths[_options.vendor] = _options.path;
+
+                require({
+                    paths: _paths
+                });
+
                 //if they passed a string, assume a foundry compatible class name
                 if(_.isString(strategy)) {
 
                     //pass to the foundry for startup
-                    return this.foundry(this._strategies[strategy], _options);
+                    return this.forge(this._strategies[strategy], _options);
 
                 }
                 //if a strategy was passed
@@ -96,11 +131,6 @@ define(['altair/facades/declare',
 
             }));
 
-
-
-        },
-
-        teardownServer: function () {
 
 
         },

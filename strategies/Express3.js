@@ -69,35 +69,42 @@ define(['altair/facades/declare',
                 renderer    = module.nexus('liquidfire:Onyx');
 
             //loop through each route
-            _.each(app.routes, function (route, path) {
+            _.each(app.routes, function (route, url) {
 
                 //set the path callback
-                this._app.all(path, this.hitch(function (req, res) {
+                this._app.all(url, this.hitch(function (req, res) {
 
-                    var layout  = route.layout,
-                        theme   = layout ? new Theme(app.path, route.layout, renderer, route) : undefined,
-                        view    = route.view ? new View(app.path + route.view, renderer) : undefined;
+                    var _route  = route,
+                        layout  = _route.layout,
+                        theme   = layout ? new Theme(app.path, _route.layout, renderer, _route) : undefined,
+                        view    = _route.view && _.isString(_route.view) ? new View(app.path + _route.view, renderer) : _route.view;
 
                     //emit the event, then pass it to the controller
                     module.emit('did-receive-request', { //a request was received, create an event
-                        path:       path,
+                        url:        url,
                         request:    req,
                         response:   res,
                         theme:      theme,
-                        view:       view
+                        route:      _route,
+                        view:       view,
+                        controller: _route.controller,
+                        callback:   _route.callback,
+                        routes:     app.routes
                     }).then(function (e) {
 
-                        return when(route.callback(e));
+                        return when(e.get('callback')(e));
 
                     }).then(function (results) {
 
                         return module.emit('will-send-response', {
-                            body:     results,
-                            path:     path,
-                            request:  req,
-                            response: res,
-                            theme:    theme,
-                            view:     view
+                            body:       results,
+                            url:        url,
+                            request:    req,
+                            response:   res,
+                            theme:      theme,
+                            route:      _route,
+                            view:       view,
+                            routes:     app.routes
                         });
 
                     }).then(function (e) {
@@ -126,13 +133,17 @@ define(['altair/facades/declare',
                         res.send(body);
 
                         return module.emit('did-send-response', {
-                            body:     body,
-                            path:     path,
-                            request:  req,
-                            response: res
+                            body:       body,
+                            path:       url,
+                            request:    req,
+                            response:   res,
+                            route:      _route,
+                            routes:     app.routes
                         });
 
-                    }).otherwise(this.hitch('onError'));
+                    }).otherwise(this.hitch(function (err) {
+                          this.onError(err, res);
+                    }));
 
 
                 }));

@@ -26,7 +26,7 @@ define(['altair/facades/declare',
             //get an unstarted web server
             return this.module.refreshStrategies().then(this.hitch(function (strategies) {
 
-               return this.module.foundry(strategies[named], null, false);
+               return this.module.forge(strategies[named], null, { startup: false });
 
             })).then(this.hitch(function (server) {
                 //prompt user for schema
