@@ -14,27 +14,20 @@ define(['altair/facades/declare',
 
         return declare([_Base], {
 
-            name: 'model',
+            name: 'controller-model',
             _handles: ['controller'],
             extend: function (Module) {
 
                 Module.extendOnce({
+                    modelPath: './models',
                     model: function (path, options, config) {
 
-                        var _p = this.resolvePath(pathUtil.resolve(this.dir, '..', 'models', path)),
+                        var _p = this.resolvePath(pathUtil.join(this.modelPath, path)),
                             d,
                             _c = mixin({
                                 type: 'model',
                                 name: this.name.split('/')[0] + '/models/' + path
                             }, config || {});
-
-
-                        if(path[0] === '.' || path[0] === '/') {
-                            d = new Deferred();
-                            d.reject(new Error('Only local models can be loaded. No / or ../ allowed for now.'));
-                            return d;
-                        }
-
 
                         return this.forge(_p, options, _c);
 

@@ -1,7 +1,6 @@
 define(['altair/facades/declare',
-    'altair/plugins/node!path',
-    'lodash',
-    'altair/facades/hitch'
+        'altair/plugins/node!path',
+        'lodash'
 ], function (declare,
              pathUtil,
              _) {
@@ -19,14 +18,25 @@ define(['altair/facades/declare',
             return controllerName;
         },
 
-        buildForRoute: function (path, vendor, route, options) {
+        forgeForRoute: function (path, vendor, route, options) {
 
 
             var callbackParts   = route.action.split('::'),
                 controller      = pathUtil.join(path, callbackParts[0]),
                 controllerName  = this.nameForRoute(vendor, route);
 
-            return this.module.forge(controller, options, { type: 'controller', name: controllerName });
+            return this.module.forge(controller, options, { type: 'controller', name: controllerName, foundry: function (Class, options, config) {
+
+                Class.extendOnce({
+                    sitePath: path,
+                    entityPath: pathUtil.join(path, 'entities'),
+                    modelPath: pathUtil.join(path, 'models'),
+                    widgetPath: pathUtil.join(path, 'widgets')
+                });
+
+                return config.defaultFoundry(Class, options, config);
+
+            } });
 
 
         }

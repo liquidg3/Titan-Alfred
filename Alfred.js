@@ -15,20 +15,14 @@ define(['altair/facades/declare',
         'altair/modules/commandcentral/mixins/_HasCommandersMixin',
         './mixins/_HasServerStrategiesMixin',
         'require',
-        './extensions/Model',
-        './extensions/Widget',
-        './extensions/WidgetRender',
-        './extensions/WidgetSchema'
+        './extensions/Model'
 ], function (declare,
              _,
              _HasSchemaMixin,
              _HasCommandersMixin,
              _HasServerStrategiesMixin,
              require,
-             ModelExtension,
-             WidgetExtension,
-             WidgetRender,
-             WidgetSchema) {
+             ModelExtension) {
 
     return declare([_HasSchemaMixin, _HasCommandersMixin, _HasServerStrategiesMixin], {
 
@@ -41,17 +35,14 @@ define(['altair/facades/declare',
 
             var _options        = options || this.options || {},
                 cartridge       = _options.extensionCartridge || this.nexus('cartridges/Extension'),
-                model           = _options.modelExtension || new ModelExtension(cartridge),
-                widget          = _options.widgetExtension || new WidgetExtension(cartridge),
-                widgetRender    = _options.widgetRenderExtension || new WidgetRender(cartridge),
-                widgetSchema    = _options.widgetSchemaExtension || new WidgetSchema(cartridge);
+                model           = _options.modelExtension || new ModelExtension(cartridge);
 
             this._activeServers = [];
 
             //drop in new extensions
-            this.deferred = cartridge.addExtensions([
-                model, widget, widgetRender, widgetSchema
-            ]);
+            this.deferred = cartridge.addExtension(model).then(this.hitch(function () {
+                return this;
+            }));
 
             return this.inherited(arguments);
 

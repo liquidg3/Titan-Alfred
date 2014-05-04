@@ -52,8 +52,7 @@ define(['altair/facades/declare',
         generateAppConfig: function (options, controllerOptions) {
 
             var path = options.dir,
-                json = pathUtil.join(path, 'app'),
-                d    = new this.Deferred();
+                json = pathUtil.join(path, 'app');
 
             //make sure path ends with a /
             if(path.slice(-1) !== '/') {
@@ -67,35 +66,66 @@ define(['altair/facades/declare',
                 }, this);
             }
 
-            //parse routes.json
-            require(['altair/plugins/config!' + json], this.hitch(function (config) {
+            return this.promise(require, ['altair/plugins/config!' + json]).then(this.hitch(function (config) {
 
                 if(!config) {
-                    d.reject(new Error('Could not find ' + json));
-                    return;
+                    throw new Error('Could not find ' + json);
                 }
 
                 //clone the config so we never mutate it
-                var _config = _.clone(config, true);
-
-                _config.path = path;
+                var appConfig = _.clone(config, true);
+                appConfig.path = path;
 
                 this.log('loading', config.name);
 
-                _.each(_config.routes, function (route, url) {
+                _.each(appConfig.routes, function (route, url) {
                     route.url = url;
                 });
 
-                this.attachControllers(path, _config.vendor, _config.routes, controllerOptions)
-                    .then(this.hitch('attachLayout', path, _config.routes))
-                    .then(this.hitch('attachViews', path, _config.routes))
-                    .then(this.hitch('attachMedia', path, _config.routes))
-                    .then(hitch(d, 'resolve', _config))
-                             .otherwise(hitch(d, 'reject'));
-
+                return this.createDatabaseAdapters(appConfig.database.connections)
+                           .then(this.hitch('attachControllers', path, appConfig.vendor, appConfig.routes, controllerOptions))
+                           .then(this.hitch('attachLayout', path, appConfig.routes))
+                           .then(this.hitch('attachViews', path, appConfig.routes))
+                           .then(this.hitch('attachMedia', path, appConfig.routes)).then(function () {
+                        return appConfig;
+                    });
 
             }));
 
+        },
+
+        /**
+         * If there are adapters specified in the app.json, lets create them
+         *
+         * @param adapters
+         */
+        createDatabaseAdapters: function (adapters) {
+
+            var d, list, db = this.nexus('cartridges/Database');
+
+            if(!adapters || !db) {
+
+                d = new this.Deferred();
+                d.resolve([]);
+
+            } else {
+
+                list = [];
+
+                _.each(adapters, function (adapter) {
+
+                    list.push(this.promise(require, [adapter.path]).then(this.hitch(function (Adapter) {
+
+                        var _adapter = new Adapter(db, adapter.options);
+                        return db.addAdapter(_adapter);
+
+                    })));
+
+                },this);
+
+                d = all(list);
+
+            }
 
             return d;
 
@@ -171,7 +201,7 @@ define(['altair/facades/declare',
             //build new controller
             else {
 
-                this._controllerFoundry.buildForRoute(path, vendor, route, options).then(function (controller) {
+                this._controllerFoundry.forgeForRoute(path, vendor, route, options).then(function (controller) {
                     attach(controller);
                 });
 
