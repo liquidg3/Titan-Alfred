@@ -63,7 +63,7 @@ define(['altair/facades/declare',
 
             this._app.use('/public', express.static(app.path + 'public'));
 
-            var module      = this.module,
+            var module      = this.parent,
                 Theme       = this.Theme,
                 View        = this.View,
                 renderer    = module.nexus('liquidfire:Onyx');

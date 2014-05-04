@@ -13,7 +13,7 @@ define(['altair/facades/declare',
          */
         startup: function () {
             var _args = arguments;
-            return this.module.refreshStrategies().then(this.hitch(function () { return this.inherited(_args); }));
+            return this.parent.refreshStrategies().then(this.hitch(function () { return this.inherited(_args); }));
         },
 
         /**
@@ -21,12 +21,12 @@ define(['altair/facades/declare',
          */
         start: function (options) {
 
-            var named = options.strategy || this.module.get('defaultStrategy');
+            var named = options.strategy || this.parent.get('defaultStrategy');
 
             //get an unstarted web server
-            return this.module.refreshStrategies().then(this.hitch(function (strategies) {
+            return this.parent.refreshStrategies().then(this.hitch(function (strategies) {
 
-               return this.module.forge(strategies[named], null, { startup: false });
+               return this.forge(strategies[named], null, { startup: false });
 
             })).then(this.hitch(function (server) {
                 //prompt user for schema
@@ -35,7 +35,7 @@ define(['altair/facades/declare',
             })).then(this.hitch(function (values) {
 
                 //start the new server
-                this.module.startupServer(named, values).otherwise(this.hitch('log'));
+                this.parent.startupServer(named, values).otherwise(this.hitch('log'));
 
             }));
 
@@ -56,7 +56,7 @@ define(['altair/facades/declare',
             //the newModule command has some multiOptions that need updating (destination dir)
             if(named === 'start') {
 
-                strategies = this.module.strategies();
+                strategies = this.parent.strategies();
                 schema.setOptionFor('strategy', 'multiOptions', strategies);
 
             }

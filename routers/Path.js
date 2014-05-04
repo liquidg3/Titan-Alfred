@@ -203,7 +203,9 @@ define(['altair/facades/declare',
 
                 this._controllerFoundry.forgeForRoute(path, vendor, route, options).then(function (controller) {
                     attach(controller);
-                });
+                }).otherwise(this.hitch(function (err) {
+                    this.log(err);
+                }));
 
             }
 

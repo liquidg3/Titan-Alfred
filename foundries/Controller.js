@@ -25,13 +25,13 @@ define(['altair/facades/declare',
                 controller      = pathUtil.join(path, callbackParts[0]),
                 controllerName  = this.nameForRoute(vendor, route);
 
-            return this.module.forge(controller, options, { type: 'controller', name: controllerName, foundry: function (Class, options, config) {
+            return this.forge(controller, options, { type: 'controller', parent: null, name: controllerName, foundry: function (Class, options, config) {
 
                 Class.extendOnce({
                     sitePath: path,
-                    entityPath: pathUtil.join(path, 'entities'),
-                    modelPath: pathUtil.join(path, 'models'),
-                    widgetPath: pathUtil.join(path, 'widgets')
+                    entityPath:     pathUtil.join(path, 'entities'),
+                    modelPath:      pathUtil.join(path, 'models'),
+                    widgetPath:     pathUtil.join(path, 'widgets')
                 });
 
                 return config.defaultFoundry(Class, options, config);
