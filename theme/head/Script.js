@@ -5,7 +5,13 @@ define(['altair/facades/declare',
 
     return declare(_Base, {
 
-        _extensions: ['js']
+        _extensions: ['js'],
+        renderItem: function (item) {
+
+            return '<script src="' + item + '"></script>';
+
+
+        }
 
     });
 

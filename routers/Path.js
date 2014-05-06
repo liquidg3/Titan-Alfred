@@ -73,7 +73,9 @@ define(['altair/facades/declare',
                 }
 
                 //clone the config so we never mutate it
-                var appConfig = _.clone(config, true);
+                var appConfig   = _.cloneDeep(config, true),
+                    media       = appConfig.media || {};
+
                 appConfig.path = path;
 
                 this.log('loading', config.name);
@@ -82,11 +84,13 @@ define(['altair/facades/declare',
                     route.url = url;
                 });
 
+
                 return this.createDatabaseAdapters(appConfig.database.connections)
                            .then(this.hitch('attachControllers', path, appConfig.vendor, appConfig.routes, controllerOptions))
                            .then(this.hitch('attachLayout', path, appConfig.routes))
                            .then(this.hitch('attachViews', path, appConfig.routes))
-                           .then(this.hitch('attachMedia', path, appConfig.routes)).then(function () {
+                           .then(this.hitch('attachMedia', path, appConfig.routes, media)).then(function () {
+
                         return appConfig;
                     });
 
@@ -221,22 +225,35 @@ define(['altair/facades/declare',
          * @param routes the routes pulled from app.json
          * @returns {altair.Deferred}
          */
-        attachMedia: function (path, routes) {
+        attachMedia: function (path, routes, globalMedia) {
 
-            var list = [];
+            var list = [],
+                skips = globalMedia ? _.keys(globalMedia) : [],
+                valid = this._validExtensions,
+                extensions;
+
+            valid.push('__missed'); //so there is at least something if all are skipped
+
+            extensions = _.difference(valid, skips).join(',');
 
             _.each(routes, function (route) {
 
                 var name        = route.layout || 'front',
-                    predicate   = '{' + this._validExtensions.join(',') + '}',
+                    ext         = '{' + extensions + '}',
                     d           = new this.Deferred(),
                     candidates  = [
-                    path + 'public/' + predicate + '/*.' + predicate,
-                    path + 'public/' + predicate + '/' + name + '/*.' + predicate
+                    path + 'public/' + ext + '/*.' + ext,
+                    path + 'public/' + ext + '/' + name + '/*.' + ext
                 ];
 
+                //if there is a global media, drop it into the rout and ignore the types it has
+                if(globalMedia) {
+                    route.media = _.cloneDeep(globalMedia);
+                } else {
+                    route.media = {};
+                }
+
                 list.push(d);
-                route.media = {};
 
                 glob(candidates).then(this.hitch(function (matches) {
 
@@ -245,11 +262,14 @@ define(['altair/facades/declare',
 
                         var ext = url.split('.').pop();
 
+
                         if(!route.media[ext]) {
                             route.media[ext] = [];
                         }
 
                         route.media[ext].push(url.replace(path, ''));
+
+
 
                     });
 
