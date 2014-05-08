@@ -23,12 +23,13 @@ define(['altair/facades/declare',
 
             var named = options.strategy || this.parent.get('defaultStrategy');
 
-            //get an unstarted web server
+            //refresh strategies
             return this.parent.refreshStrategies().then(this.hitch(function (strategies) {
 
                return this.forge(strategies[named], null, { startup: false });
 
             })).then(this.hitch(function (server) {
+
                 //prompt user for schema
                 return this.form(server.schema());
 

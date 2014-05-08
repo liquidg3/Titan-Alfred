@@ -1,5 +1,7 @@
 define(['altair/facades/declare',
         'altair/plugins/node!path',
+        'altair/plugins/node!fs',
+        'altair/plugins/node!mkdirp',
         'lodash',
         'altair/Lifecycle',
         'altair/facades/hitch',
@@ -7,6 +9,8 @@ define(['altair/facades/declare',
         'altair/facades/glob'
 ], function (declare,
              pathUtil,
+             fs,
+             mkdirp,
              _,
              Lifecycle,
              hitch,
@@ -17,26 +21,44 @@ define(['altair/facades/declare',
 
         //cache controllers by name
         _controllersByName: null,
-        _validExtensions:   ['less', 'js', 'css'],
         _controllerFoundry: null,
+        _dir:               '',
 
         startup: function (options) {
 
             var _options = options || this.options || {};
 
-            //if there is no controller foundry, lets create one
-            if(!_options.controllerFoundry) {
+            this._dir = _options.dir;
 
-                this.deferred = this.forge('../foundries/Controller').then(this.hitch(function (foundry) {
-                    this._controllerFoundry = foundry;
-                    return this;
-                }));
+            //make sure path ends with a /
+
+            if(!this._dir) {
+
+                this.deferred = new this.Deferred();
+                this.deferred.reject(new Error('You must pass routers/AppConfig a dir (which is the root of the website you want to launch)'));
 
             } else {
-                this._controllerFoundry = _options.controllerFoundry;
+
+                if(this._dir.slice(-1) !== '/') {
+                    this._dir = this._dir + '/';
+                }
+
+                //if there is no controller foundry, lets create one
+                if(!_options.controllerFoundry) {
+
+                    this.deferred = this.forge('../foundries/Controller').then(this.hitch(function (foundry) {
+                        this._controllerFoundry = foundry;
+                        return this;
+                    }));
+
+                } else {
+                    this._controllerFoundry = _options.controllerFoundry;
+                }
+
+                this._controllersByName = _options.controllersByName || {};
+
             }
 
-            this._controllersByName = _options.controllersByName || {};
 
             return this.inherited(arguments);
 
@@ -49,22 +71,12 @@ define(['altair/facades/declare',
          * @param controllerOptions any options you want passed to your controller for startup
          * @returns {altair.Deferred} will resolve with the populated and configured routes
          */
-        generateAppConfig: function (options, controllerOptions) {
+        generateAppConfig: function (controllerOptions) {
 
-            var path = options.dir,
+            var path = this._dir,
                 json = pathUtil.join(path, 'app');
 
-            //make sure path ends with a /
-            if(path.slice(-1) !== '/') {
-                path = path + '/';
-            }
 
-            //dependency injection
-            if(options) {
-                _.each(options, function (value, key) {
-                    this['_' + key] = value;
-                }, this);
-            }
 
             return this.promise(require, ['altair/plugins/config!' + json]).then(this.hitch(function (config) {
 
@@ -86,13 +98,16 @@ define(['altair/facades/declare',
 
 
                 return this.createDatabaseAdapters(appConfig.database.connections)
-                           .then(this.hitch('attachControllers', path, appConfig.vendor, appConfig.routes, controllerOptions))
-                           .then(this.hitch('attachLayout', path, appConfig.routes))
-                           .then(this.hitch('attachViews', path, appConfig.routes))
-                           .then(this.hitch('attachMedia', path, appConfig.routes, media)).then(function () {
+                           .then(this.hitch('attachControllers',appConfig.vendor, appConfig.routes, controllerOptions))
+                           .then(this.hitch('attachLayout', appConfig.routes))
+                           .then(this.hitch('attachViews', appConfig.routes))
+                           .then(this.hitch('attachMediaForPropertyTypes', media))
+                           .then(this.hitch('attachMedia', appConfig.routes, media))
+                           .then(function () {
 
-                        return appConfig;
-                    });
+                                return appConfig;
+
+                            });
 
             }));
 
@@ -138,12 +153,11 @@ define(['altair/facades/declare',
         /**
          * Attaches controllers to the routes
          *
-         * @param path
          * @param routes
          * @param options
          * @returns {*|Promise}
          */
-        attachControllers: function (path, vendor, routes, options) {
+        attachControllers: function (vendor, routes, options) {
 
             var list = [];
 
@@ -155,7 +169,7 @@ define(['altair/facades/declare',
                 list.push(d);
 
                 //attach the controler
-                this.attachControllerToRoute(path, vendor, route, options).then(function (route) {
+                this.attachControllerToRoute(vendor, route, options).then(function (route) {
 
                     d.resolve(routes);
 
@@ -175,9 +189,10 @@ define(['altair/facades/declare',
 
         },
 
-        attachControllerToRoute: function (path, vendor, route, options) {
+        attachControllerToRoute: function (vendor, route, options) {
 
             var foundry         = this._controllerFoundry,
+                path            = this._dir,
                 deferred        = new this.Deferred(),
                 action          = route.action.split('::').pop(),//action comes in form controlle/Name::action
                 name            = foundry.nameForRoute(vendor, route),
@@ -206,9 +221,13 @@ define(['altair/facades/declare',
             else {
 
                 this._controllerFoundry.forgeForRoute(path, vendor, route, options).then(function (controller) {
+
                     attach(controller);
+
                 }).otherwise(this.hitch(function (err) {
+
                     this.log(err);
+
                 }));
 
             }
@@ -219,71 +238,129 @@ define(['altair/facades/declare',
         },
 
         /**
+         * Properties in Altair can have a media property to specify css/jss/less etc. they need to be included in order to be rendered
+         *
+         * @param path
+         * @param routes
+         */
+        attachMediaForPropertyTypes: function (media) {
+
+
+            var apollo = this.nexus('cartridges/Apollo'),
+                types  = apollo.propertyTypes();
+
+
+            _.each(types, function (type) {
+
+                if(type.media) {
+
+                    _.merge(media, type.media, function(a, b) {
+                        return _.isArray(a) ? a.concat(b) : undefined;
+                    });
+
+                }
+
+            }, this);
+
+
+            return all(media);
+
+        },
+
+        /**
          * Looks in a path and attaches the js/css to each route
          *
          * @param path
          * @param routes the routes pulled from app.json
          * @returns {altair.Deferred}
          */
-        attachMedia: function (path, routes, globalMedia) {
+        attachMedia: function (routes, globalMedia) {
 
-            var list = [],
-                skips = globalMedia ? _.keys(globalMedia) : [],
-                valid = this._validExtensions,
-                extensions;
-
-            valid.push('__missed'); //so there is at least something if all are skipped
-
-            extensions = _.difference(valid, skips).join(',');
+            var l = [],
+                resolving = {};
 
             _.each(routes, function (route) {
 
-                var name        = route.layout || 'front',
-                    ext         = '{' + extensions + '}',
-                    d           = new this.Deferred(),
-                    candidates  = [
-                    path + 'public/' + ext + '/*.' + ext,
-                    path + 'public/' + ext + '/' + name + '/*.' + ext
-                ];
-
-                //if there is a global media, drop it into the rout and ignore the types it has
-                if(globalMedia) {
-                    route.media = _.cloneDeep(globalMedia);
-                } else {
+                //initialize media
+                if(!route.media) {
                     route.media = {};
                 }
 
-                list.push(d);
+                //if there is a global media, drop it into the rout and ignore the types it has
+                if(globalMedia) {
 
-                glob(candidates).then(this.hitch(function (matches) {
+                    var media = {};
 
-                    //group all matches by file extension
-                    _.each(matches, function (url) {
-
-                        var ext = url.split('.').pop();
-
-
-                        if(!route.media[ext]) {
-                            route.media[ext] = [];
-                        }
-
-                        route.media[ext].push(url.replace(path, ''));
-
-
-
+                    _.merge(media, globalMedia, route.media, function(a, b) {
+                        return _.isArray(a) ? a.concat(b) : undefined;
                     });
 
-                    d.resolve();
+                    route.media = media;
+                }
 
-                }));
+                //loop through all media and resolve any nexus id's we find
+                _.each(route.media, function (files, type) {
+
+                    _.each(files, function (file, i) {
+
+                        //is it a nexus id?
+                        if(file.search(':') > 0 && file.search('http') === -1) {
+
+                            if(_.has(resolving, file)) {
+
+                                files[i] = resolving[file];
+
+                            } else {
+
+                                files[i] = resolving[file] = this.importMedia(file);
+
+                            }
+
+                        }
+
+                    }, this);
+
+                    l.push(all(files).then(function (files) {
+                        route.media[type] = files;
+                    }));
+
+                }, this);
+
 
             }, this);
 
-            return all(list).then(function () {
+
+            return all(l).then(function () {
                 return routes;
             });
 
         },
+
+        /**
+         * Copy any media (css, js, less) that does not exist in web
+         * @param from
+         */
+        importMedia: function (from) {
+
+            var to      = this._dir,
+                _from   = this.resolvePath(from),
+                parts   = _from.split('public'),
+                url     = pathUtil.join('/public/_copied/', parts.pop()),
+                dest    = pathUtil.join(to, url),
+                destDir = pathUtil.dirname(dest);
+
+
+            return this.promise(mkdirp, destDir).then(function () {
+
+                fs.createReadStream(_from).pipe(fs.createWriteStream(dest));
+
+                return url;
+
+            });
+
+
+        },
+
 
         /**
          * Attach layouts to the routes
@@ -292,10 +369,11 @@ define(['altair/facades/declare',
          * @param routes the routes from app.json
          * @returns {*}
          */
-        attachLayout: function (path, routes) {
+        attachLayout: function (routes) {
 
             //loop through each rout and glob for candidates
-            var list = [];
+            var list = [],
+                path = this._dir;
 
             _.each(routes, function (route) {
 
@@ -332,10 +410,11 @@ define(['altair/facades/declare',
          * @param path
          * @param routes
          */
-        attachViews: function (path, routes) {
+        attachViews: function (routes) {
 
             //loop through each rout and glob for candidates
-            var list = [];
+            var list = [],
+                path = this._dir;
 
             _.each(routes, function (route) {
 

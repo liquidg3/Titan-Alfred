@@ -1,20 +1,22 @@
 {
-    "name":         "titan:Alfred",
-    "version":      "0.0.1",
+    "name":               "titan:Alfred",
+    "version":            "0.0.1",
     "altairDependencies": {
         "altair:CommandCentral": ">=0.0.x",
         "liquidfire:Onyx":       ">=0.0.x"
     },
-    "dependencies": {
-        "express":          ">=3.x",
-        "less":             ">=1.x"
+    "dependencies":       {
+        "express": ">=3.x",
+        "less":    ">=1.x"
     },
-    "events": {
+    "events":             {
         "register-server-strategies": "Tell me all about the strategies you have.",
-        "register-routes": "Register all the web routes you want handeled using my simple MVC approach",
-        "did-receive-request": "A request just came in, your chance to do something special",
-        "will-send-response": "I'm about to send back a response",
-        "did-send-response": "I have sent a response to the end user"
+        "register-routes":            "Register all the web routes you want handeled using my simple MVC approach",
+        "did-receive-request":        "A request just came in, your chance to do something special",
+        "will-execute-server":        "I'm about to invoke execute() on a server startegy",
+        "did-execute-server":         "A web server has been started.",
+        "will-send-response":         "I'm about to send back a response",
+        "did-send-response":          "I have sent a response to the end user"
     },
-    "description":  "A super simple, super thin module designed to provide a simple MVC architecture for web apps in Altair using express."
+    "description":        "A super simple, super thin module designed to provide a simple MVC architecture for web apps in Altair using express."
 }

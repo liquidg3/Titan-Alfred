@@ -12,7 +12,7 @@ define(['altair/facades/declare',
 
         startup: function () {
 
-            this.on('register-server-strategies').then(this.hitch('registerServerStrategies'));
+            this.on('titan:Alfred::register-server-strategies').then(this.hitch('registerServerStrategies'));
 
             return this.inherited(arguments);
         },

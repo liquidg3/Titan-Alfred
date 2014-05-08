@@ -46,12 +46,8 @@ define(['altair/facades/declare',
 
         append: function (item) {
 
-            //make sure the path is absolute
-            if(item[0] !== '/' && item.search('http') === -1) {
-                item = '/' + item;
-            }
-
             this._items.push(item);
+
             return this;
         },
 

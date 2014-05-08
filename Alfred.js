@@ -49,12 +49,6 @@ define(['altair/facades/declare',
         },
 
         execute: function () {
-//
-//            if(this.get('autostart')) {
-//                this.log('autostarting server');
-//                this.startupServer();
-//            }
-
             return this.inherited(arguments);
         },
 
@@ -67,28 +61,32 @@ define(['altair/facades/declare',
          */
         startupServer: function (strategy, options) {
 
-            var _options = options || {};
+            var app = options || {},
+                _router,
+                server;
 
             //create a router
-            return this.forge(_options.router || 'routers/Path').then(function (router) {
+            return this.forge(app.router || 'routers/AppConfig', app).then(function (router) {
+
+                _router = router;
 
                 //generate populated routes (see strategies/README.md)
-                return router.generateAppConfig(_options);
+                return router.generateAppConfig();
 
-            }).then(this.hitch(function (app) {
-
-                //pass the newly generated routes our server strategy
-                _options = app;
+            }).then(this.hitch(function (_app) {
 
                 var _paths = {};
 
+                //pass the newly generated routes our server strategy
+                app = _app;
+
                 //map the vendor
-                if(!_options.vendor) {
+                if(!app.vendor) {
                     throw new Error('You must set a vendor in your app config.');
                 }
 
                 //include paths
-                _paths[_options.vendor] = _options.path;
+                _paths[app.vendor] = app.path;
 
                 require({
                     paths: _paths
@@ -98,18 +96,28 @@ define(['altair/facades/declare',
                 if(_.isString(strategy)) {
 
                     //pass to the foundry for startup
-                    return this.forge(this._strategies[strategy], _options);
+                    return this.forge(this._strategies[strategy], app);
 
                 }
                 //if a strategy was passed
                 else {
 
                     //just start it up
-                    return strategy.startup(_options);
+                    return strategy.startup(app);
 
                 }
 
             })).then(this.hitch(function (server) {
+
+                return this.emit('will-execute-server', {
+                    server: server,
+                    app:    app,
+                    router: _router
+                });
+
+            })).then(this.hitch(function (e) {
+
+                server = e.get('server');
 
                 //execute the server
                 server.execute();
@@ -117,8 +125,12 @@ define(['altair/facades/declare',
                 //add it to list of active servers
                 this._activeServers.push(server);
 
-                //we don't wait for the server to finish execution since it could be a long time
-                return server;
+                //let the world know we have executed
+                return this.emit('did-execute-server', {
+                    server: server,
+                    app:    app,
+                    router: _router
+                });
 
             }));
 
