@@ -4,8 +4,6 @@ define(['altair/facades/declare',
         'altair/plugins/node!mkdirp',
         'lodash',
         'altair/Lifecycle',
-        'altair/facades/hitch',
-        'altair/facades/all',
         'altair/facades/glob'
 ], function (declare,
              pathUtil,
@@ -13,14 +11,11 @@ define(['altair/facades/declare',
              mkdirp,
              _,
              Lifecycle,
-             hitch,
-             all,
              glob) {
 
     return declare([Lifecycle], {
 
         //cache controllers by name
-        _controllersByName: null,
         _controllerFoundry: null,
         _dir:               '',
 
@@ -55,7 +50,6 @@ define(['altair/facades/declare',
                     this._controllerFoundry = _options.controllerFoundry;
                 }
 
-                this._controllersByName = _options.controllersByName || {};
 
             }
 
@@ -103,6 +97,7 @@ define(['altair/facades/declare',
                            .then(this.hitch('attachViews', appConfig.routes))
                            .then(this.hitch('attachMediaForPropertyTypes', media))
                            .then(this.hitch('attachMedia', appConfig.routes, media))
+                           .then(this.hitch('startupControllers', appConfig))
                            .then(function () {
 
                                 return appConfig;
@@ -142,7 +137,7 @@ define(['altair/facades/declare',
 
                 },this);
 
-                d = all(list);
+                d = this.all(list);
 
             }
 
@@ -168,7 +163,7 @@ define(['altair/facades/declare',
                 var d = new this.Deferred();
                 list.push(d);
 
-                //attach the controler
+                //attach the controller
                 this.attachControllerToRoute(vendor, route, options).then(function (route) {
 
                     d.resolve(routes);
@@ -183,26 +178,33 @@ define(['altair/facades/declare',
 
             }, this);
 
-            return all(list).then(function () {
+            return this.all(list).then(function () {
                 return routes;
             });
 
         },
 
+        /**
+         * Attach the required controller to a particular route.
+         *
+         * @param vendor
+         * @param route
+         * @param options
+         * @returns {Deferred}
+         */
         attachControllerToRoute: function (vendor, route, options) {
 
             var foundry         = this._controllerFoundry,
                 path            = this._dir,
                 deferred        = new this.Deferred(),
                 action          = route.action.split('::').pop(),//action comes in form controlle/Name::action
-                name            = foundry.nameForRoute(vendor, route),
                 attach          = this.hitch(function (controller) {
 
                     if(!controller[action]) {
                         deferred.reject( new Error(controller + ' is missing action ' + action + '(e) for route "' + route.url + '"'));
                     } else {
                         this.log('attaching route ' + route.url + ' to callback ' + route.action );
-                        route.callback    = hitch(controller, action);
+                        route.callback    = this.hitch(controller, action);
                         route.controller  = controller;
                         route.action      = action;
                         deferred.resolve(route);
@@ -211,29 +213,46 @@ define(['altair/facades/declare',
                 });
 
 
-            //de we have a version of this already?
-            if(this._controllersByName[name]) {
+            this._controllerFoundry.forgeForRoute(path, vendor, route, options).then(function (controller) {
 
-                attach(this._controllersByName[name]);
+                attach(controller);
 
-            }
-            //build new controller
-            else {
+            }).otherwise(this.hitch(function (err) {
 
-                this._controllerFoundry.forgeForRoute(path, vendor, route, options).then(function (controller) {
+                this.log(err);
 
-                    attach(controller);
+            }));
 
-                }).otherwise(this.hitch(function (err) {
-
-                    this.log(err);
-
-                }));
-
-            }
 
             return deferred;
 
+
+        },
+
+        /**
+         * This will startup every controller, passing them the appConfig during startup.
+         *
+         * @param routes
+         */
+        startupControllers: function (appConfig) {
+
+
+            var beenStarted = {},
+                l = _.map(appConfig.routes, function (route) {
+
+                var controller = route.controller;
+
+                if(!beenStarted[controller.name] && controller.startup) {
+                    beenStarted[controller.name] = true;
+                    return controller.startup({ route: route, app: appConfig });
+                } else {
+                    return controller;
+                }
+
+            });
+
+
+            return this.all(l);
 
         },
 
@@ -263,7 +282,7 @@ define(['altair/facades/declare',
             }, this);
 
 
-            return all(media);
+            return this.all(media);
 
         },
 
@@ -320,7 +339,7 @@ define(['altair/facades/declare',
 
                     }, this);
 
-                    l.push(all(files).then(function (files) {
+                    l.push(this.all(files).then(function (files) {
                         route.media[type] = files;
                     }));
 
@@ -330,7 +349,7 @@ define(['altair/facades/declare',
             }, this);
 
 
-            return all(l).then(function () {
+            return this.all(l).then(function () {
                 return routes;
             });
 
@@ -398,7 +417,7 @@ define(['altair/facades/declare',
 
             }, this);
 
-            return all(list).then(function () {
+            return this.all(list).then(function () {
                 return routes;
             });
 
@@ -440,7 +459,7 @@ define(['altair/facades/declare',
 
             }, this);
 
-            return all(list).then(function () {
+            return this.all(list).then(function () {
                 return routes;
             });
 

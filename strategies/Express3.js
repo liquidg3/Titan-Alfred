@@ -2,20 +2,24 @@ define(['altair/facades/declare',
         'altair/facades/hitch',
         'altair/plugins/node!express',
         'altair/plugins/node!http',
+        'altair/plugins/node!body-parser',
         'altair/facades/when',
-        'altair/events/Event',
         '../theme/Theme',
         '../theme/View',
+        '../http/Request',
+        '../http/Response',
         'lodash',
         './_Base'
 ], function (declare,
              hitch,
              express,
              http,
+             bodyParser,
              when,
-             Event,
              Theme,
              View,
+             Request,
+             Response,
              _,
              _Base) {
 
@@ -25,6 +29,8 @@ define(['altair/facades/declare',
         _server:    null,
         Theme:      Theme,
         View:       View,
+        Request:    Request,
+        Response:   Response,
         startup: function (options) {
 
             var _options = options || this.options || {};
@@ -61,91 +67,19 @@ define(['altair/facades/declare',
          */
         configureApp: function (app) {
 
-            this._app.use('/public', express.static(app.path + 'public'));
 
-            var module      = this.parent,
-                Theme       = this.Theme,
-                View        = this.View,
-                renderer    = module.nexus('liquidfire:Onyx');
+            var module      = this.parent;
+
+            this._app.use(bodyParser());
+
+            this._app.use('/public', express.static(app.path + 'public'));
 
             //loop through each route
             _.each(app.routes, function (route, url) {
 
                 //set the path callback
-                this._app.all(url, this.hitch(function (req, res) {
-
-                    var _route  = route,
-                        layout  = _route.layout,
-                        theme   = layout ? new Theme(app.path, _route.layout, renderer, _route) : undefined,
-                        view    = _route.view && _.isString(_route.view) ? new View(app.path + _route.view, renderer) : _route.view;
-
-                    //emit the event, then pass it to the controller
-                    module.emit('did-receive-request', { //a request was received, create an event
-                        url:        url,
-                        request:    req,
-                        response:   res,
-                        theme:      theme,
-                        route:      _route,
-                        view:       view,
-                        controller: _route.controller,
-                        callback:   _route.callback,
-                        routes:     app.routes
-                    }).then(function (e) {
-
-                        return when(e.get('callback')(e));
-
-                    }).then(function (results) {
-
-                        return module.emit('will-send-response', {
-                            body:       results,
-                            url:        url,
-                            request:    req,
-                            response:   res,
-                            theme:      theme,
-                            route:      _route,
-                            view:       view,
-                            routes:     app.routes
-                        });
-
-                    }).then(function (e) {
-
-                        var body = e.get('body'),
-                            theme;
-
-                        //if there is a theme, set its body and render it
-                        if(e.get('theme')) {
-
-                            body = e.get('theme').setBody(body).render();
-
-                        }
-                        //straight passthrough of results if no theme
-                        else {
-
-                            body = e.get('body');
-
-                        }
-
-                        return when(body);
-
-
-                    }).then(function (body) {
-
-                        res.send(body);
-
-                        return module.emit('did-send-response', {
-                            body:       body,
-                            path:       url,
-                            request:    req,
-                            response:   res,
-                            route:      _route,
-                            routes:     app.routes
-                        });
-
-                    }).otherwise(this.hitch(function (err) {
-                          this.onError(err, res);
-                    }));
-
-
+                this._app.all(url, this.hitch(function (req, res, next) {
+                    this.handleRequest(app, url, route, req, res, next);
                 }));
 
 
@@ -156,11 +90,95 @@ define(['altair/facades/declare',
 
         },
 
+        /**
+         * Called on every request
+         *
+         * @param route
+         * @param _req
+         * @param _res
+         * @param next
+         */
+        handleRequest: function (app, url, route, _req, _res, next) {
+
+            var _route  = route,
+                module  = this.parent,
+                renderer= module.nexus('liquidfire:Onyx'),
+                req     = new this.Request(_req),
+                res     = new this.Response(_res),
+                layout  = _route.layout,
+                theme   = layout ? new this.Theme(app.path, _route.layout, renderer, _route) : undefined,
+                view    = _route.view && _.isString(_route.view) ? new this.View(app.path + _route.view, renderer) : _route.view;
+
+            //emit the event, then pass it to the controller
+            module.emit('did-receive-request', { //a request was received, create an event
+                url:        url,
+                request:    req,
+                response:   res,
+                theme:      theme,
+                route:      _route,
+                view:       view,
+                controller: _route.controller,
+                callback:   _route.callback,
+                routes:     app.routes
+            }).then(function (e) {
+
+                return when(e.get('callback')(e));
+
+            }).then(function (results) {
+
+                return module.emit('will-send-response', {
+                    body:       results,
+                    url:        url,
+                    request:    req,
+                    response:   res,
+                    theme:      theme,
+                    route:      _route,
+                    view:       view,
+                    routes:     app.routes
+                });
+
+            }).then(function (e) {
+
+                var body = e.get('body'),
+                    theme;
+
+                //if there is a theme, set its body and render it
+                if(e.get('theme') && _.isString(body)) {
+
+                    body = e.get('theme').setBody(body).render();
+
+                }
+
+                return when(body);
+
+
+            }).then(function (body) {
+
+                res.send(body);
+
+                return module.emit('did-send-response', {
+                    body:       body,
+                    path:       url,
+                    request:    req,
+                    response:   res,
+                    route:      _route,
+                    routes:     app.routes
+                });
+
+
+            }).otherwise(this.hitch(function (err) {
+                this.onError(err, res);
+            }));
+
+
+        },
+
         onError: function (err, response) {
 
             this.log(err);
 
             if(response) {
+                response.setStatus(500);
                 response.send(err.stack);
             }
 

@@ -14,6 +14,7 @@ define(['altair/facades/declare',
         'apollo/_HasSchemaMixin',
         'altair/modules/commandcentral/mixins/_HasCommandersMixin',
         './mixins/_HasServerStrategiesMixin',
+        './nexusresolvers/Controllers',
         'require',
         './extensions/Model'
 ], function (declare,
@@ -21,6 +22,7 @@ define(['altair/facades/declare',
              _HasSchemaMixin,
              _HasCommandersMixin,
              _HasServerStrategiesMixin,
+             ControllersResolver,
              require,
              ModelExtension) {
 
@@ -29,28 +31,43 @@ define(['altair/facades/declare',
         //all the strategies we have registered, key is name, value is nexus id
         _strategies:    null,
         _activeServers: null,
+        _controllerFoundry: null,
 
         //during startup, lets add some extensions to make all the MVC functionality work beautifully
         startup: function (options) {
 
-            var _options        = options || this.options || {},
-                cartridge       = _options.extensionCartridge || this.nexus('cartridges/Extension'),
-                model           = _options.modelExtension || new ModelExtension(cartridge);
+            var _options            = options || this.options || {},
+                cartridge           = _options.extensionCartridge || this.nexus('cartridges/Extension'),
+                model               = _options.modelExtension || new ModelExtension(cartridge);
 
             this._activeServers = [];
 
             //drop in new extensions
             this.deferred = cartridge.addExtension(model).then(this.hitch(function () {
+
                 return this;
+
+            })).then(this.hitch(function () {
+
+                //create our controller foundry
+                return this.forge('./foundries/Controller');
+
+            })).then(this.hitch(function (foundry) {
+
+                var resolver = new ControllersResolver(foundry);
+
+                this._nexus.addResolver(resolver);
+
+                this._controllerFoundry = foundry;
+
+                return this;
+
             }));
 
             return this.inherited(arguments);
 
         },
 
-        execute: function () {
-            return this.inherited(arguments);
-        },
 
         /**
          * Startup a server by name
@@ -64,6 +81,9 @@ define(['altair/facades/declare',
             var app = options || {},
                 _router,
                 server;
+
+            //pass controller foundry to the router
+            app.controllerFoundry = this._controllerFoundry;
 
             //create a router
             return this.forge(app.router || 'routers/AppConfig', app).then(function (router) {

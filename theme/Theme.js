@@ -79,8 +79,17 @@ define(['altair/facades/declare',
             return this;
         },
 
+        headLink: function () {
+            return this._headLink;
+        },
+
+        headScript: function () {
+            return this._headScript;
+        },
+
         set: function (name, value) {
             this.context[name] = value;
+            return this;
         },
 
         get: function (name, defaultValue) {

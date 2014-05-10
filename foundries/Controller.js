@@ -1,14 +1,23 @@
 define(['altair/facades/declare',
         'altair/plugins/node!path',
+        'altair/mixins/_DeferredMixin',
         'lodash'
 ], function (declare,
              pathUtil,
+             _DeferredMixin,
              _) {
 
     "use strict";
 
-    return declare(null, {
+    return declare([_DeferredMixin], {
 
+        _controllers: null, //cache of controllers to keep from double generating
+        _namespaces:  null, //all the namespaces we have forged
+
+        constructor: function () {
+            this._controllers = {};
+            this._namespaces  = {};
+        },
 
         nameForRoute: function (vendor, route) {
 
@@ -18,26 +27,66 @@ define(['altair/facades/declare',
             return controllerName;
         },
 
-        forgeForRoute: function (path, vendor, route, options) {
+        hasController: function (named) {
+            return _.has(this._controllers, named);
+        },
 
+        controller: function (named) {
+            return this._controllers[named];
+        },
+
+        hasNamespace: function (named) {
+            return _.has(this._namespaces ,named);
+        },
+
+        controllersInNamespace: function (named) {
+            return this._namespaces[named];
+        },
+
+        forgeForRoute: function (path, vendor, route, options) {
 
             var callbackParts   = route.action.split('::'),
                 controller      = pathUtil.join(path, callbackParts[0]),
-                controllerName  = this.nameForRoute(vendor, route);
+                controllerName  = this.nameForRoute(vendor, route),
+                namespace       = controllerName.split('/').shift(),
+                dfd;
 
-            return this.forge(controller, options, { type: 'controller', parent: null, name: controllerName, foundry: function (Class, options, config) {
+            //track all the namespaces (1 per site)
+            if(!this._namespaces[namespace]) {
+                this._namespaces[namespace] = [];
+            }
 
-                Class.extendOnce({
-                    sitePath: path,
-                    entityPath:     pathUtil.join(path, 'entities'),
-                    modelPath:      pathUtil.join(path, 'models'),
-                    widgetPath:     pathUtil.join(path, 'widgets')
-                });
 
-                return config.defaultFoundry(Class, options, config);
+            if(_.has(this._controllers, controllerName)) {
 
-            } });
+                dfd = this.when(this._controllers[controllerName]);
 
+            } else {
+
+                dfd =  this.forge(controller, options, { type: 'controller', startup: false, parent: null, name: controllerName, foundry: this.hitch(function (Class, options, config) {
+
+                    Class.extendOnce({
+                        sitePath: path,
+                        entityPath:     pathUtil.join(path, 'entities'),
+                        modelPath:      pathUtil.join(path, 'models'),
+                        widgetPath:     pathUtil.join(path, 'widgets')
+                    });
+
+                    return config.defaultFoundry(Class, options, config).then(this.hitch(function (controller) {
+
+                        this._controllers[controllerName] = controller;
+                        this._namespaces[namespace].push(controller);
+
+                        return controller;
+                    }));
+
+                })});
+
+                this._controllers[controllerName] = dfd;
+
+            }
+
+            return dfd;
 
         }
 
