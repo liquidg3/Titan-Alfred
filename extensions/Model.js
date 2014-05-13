@@ -20,16 +20,22 @@ define(['altair/facades/declare',
 
                 Module.extendOnce({
                     modelPath: './models',
+                    _models: {},
                     model: function (path, options, config) {
 
                         var _p = this.resolvePath(pathUtil.join(this.modelPath, path)),
-                            d,
                             _c = mixin({
                                 type: 'model',
                                 name: this.name.split('/')[0] + '/models/' + path
                             }, config || {});
 
-                        return this.forge(_p, options, _c);
+                        if(this._models[path]) {
+                            return this._models[path];
+                        }
+
+                        this._models[path] = this.forge(_p, options, _c);
+
+                        return this._models[path];
 
                     }
                 });

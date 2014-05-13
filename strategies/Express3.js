@@ -67,7 +67,6 @@ define(['altair/facades/declare',
          */
         configureApp: function (app) {
 
-
             var module      = this.parent;
 
             this._app.use(bodyParser());
@@ -77,8 +76,18 @@ define(['altair/facades/declare',
             //loop through each route
             _.each(app.routes, function (route, url) {
 
+                var verb = 'all',
+                    _url = url,
+                    parts;
+
+                if(url.search(' ') > 0) {
+                    parts = url.split(' ');
+                    verb  = parts[0];
+                    _url  = parts[1];
+                }
+
                 //set the path callback
-                this._app.all(url, this.hitch(function (req, res, next) {
+                this._app[verb](_url, this.hitch(function (req, res, next) {
                     this.handleRequest(app, url, route, req, res, next);
                 }));
 
@@ -122,7 +131,12 @@ define(['altair/facades/declare',
                 routes:     app.routes
             }).then(function (e) {
 
-                return when(e.get('callback')(e));
+                if(e.active) {
+                    return when(e.get('callback')(e));
+                } else {
+                    return e.get('body');
+                }
+
 
             }).then(function (results) {
 
@@ -207,6 +221,13 @@ define(['altair/facades/declare',
             }
 
             return this.inherited(arguments);
+        },
+
+        teardown: function () {
+
+            this.log('tearing down server');
+            return this.promise(this._server, 'close');
+
         }
 
     });

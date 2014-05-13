@@ -70,9 +70,7 @@ define(['altair/facades/declare',
             var path = this._dir,
                 json = pathUtil.join(path, 'app');
 
-
-
-            return this.promise(require, ['altair/plugins/config!' + json]).then(this.hitch(function (config) {
+            return this.promise(require, ['altair/plugins/config!' + json + '.json']).then(this.hitch(function (config) {
 
                 if(!config) {
                     throw new Error('Could not find ' + json);
@@ -201,7 +199,7 @@ define(['altair/facades/declare',
                 attach          = this.hitch(function (controller) {
 
                     if(!controller[action]) {
-                        deferred.reject( new Error(controller + ' is missing action ' + action + '(e) for route "' + route.url + '"'));
+                        deferred.reject( new Error(controller + ' is missing callback ' + action + '(e) for route "' + route.url + '"'));
                     } else {
                         this.log('attaching route ' + route.url + ' to callback ' + route.action );
                         route.callback    = this.hitch(controller, action);
@@ -213,7 +211,7 @@ define(['altair/facades/declare',
                 });
 
 
-            this._controllerFoundry.forgeForRoute(path, vendor, route, options).then(function (controller) {
+            foundry.forgeForRoute(path, vendor, route, options).then(function (controller) {
 
                 attach(controller);
 

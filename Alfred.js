@@ -152,7 +152,9 @@ define(['altair/facades/declare',
                     router: _router
                 });
 
-            }));
+            })).then(function (e) {
+                return e.get('server');
+            });
 
 
 

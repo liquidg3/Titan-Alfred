@@ -17,7 +17,7 @@ define(['altair/facades/declare',
         },
 
         /**
-         * Startup the web server
+         * Startup a web server
          */
         start: function (options) {
 
@@ -36,11 +36,35 @@ define(['altair/facades/declare',
             })).then(this.hitch(function (values) {
 
                 //start the new server
-                this.parent.startupServer(named, values).otherwise(this.hitch('log'));
+                return this.parent.startupServer(named, values).otherwise(this.hitch('log'));
 
             }));
 
 
+
+        },
+
+        startRecycle: function (options) {
+
+            var recycle = this.hitch(function () {
+
+                this.start(options).then(this.hitch(function (server) {
+
+                    setTimeout(this.hitch(function () {
+
+                        if(server) {
+                            server.teardown().then(recycle).otherwise(this.hitch('log'));
+                        } else {
+                            recycle();
+                        }
+
+                    }), 5000);
+
+                }));
+
+            });
+
+            recycle();
 
         },
 
@@ -55,7 +79,7 @@ define(['altair/facades/declare',
                 strategies;
 
             //the newModule command has some multiOptions that need updating (destination dir)
-            if(named === 'start') {
+            if(named === 'start' || named === 'startRecycle') {
 
                 strategies = this.parent.strategies();
                 schema.setOptionFor('strategy', 'multiOptions', strategies);
