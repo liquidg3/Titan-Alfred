@@ -42,6 +42,19 @@ define(['altair/facades/declare', 'lodash'], function (declare, _) {
 
         isXhr: function () {
             return this._req.xhr;
+        },
+
+        method: function () {
+            return this._req.method;
+        },
+
+        header: function (named, defaultValue) {
+
+            if(named) {
+                named = named.toLowerCase();
+            }
+
+            return _.has(this._req.headers, named) ? this._req.headers[named] : defaultValue;
         }
 
 

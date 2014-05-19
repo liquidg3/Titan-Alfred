@@ -7,7 +7,8 @@
     },
     "dependencies":       {
         "express": ">=3.x",
-        "less":    ">=1.x"
+        "less":    ">=1.x",
+        "multiparty":  "3.2.5"
     },
     "events":             {
         "register-server-strategies": "Tell me all about the strategies you have.",

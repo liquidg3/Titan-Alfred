@@ -1,8 +1,10 @@
 define(['altair/facades/declare',
         'altair/facades/hitch',
+        'altair/facades/mixin',
         'altair/plugins/node!express',
         'altair/plugins/node!http',
         'altair/plugins/node!body-parser',
+        'altair/plugins/node!multiparty',
         'altair/facades/when',
         '../theme/Theme',
         '../theme/View',
@@ -12,9 +14,11 @@ define(['altair/facades/declare',
         './_Base'
 ], function (declare,
              hitch,
+             mixin,
              express,
              http,
              bodyParser,
+             multiparty,
              when,
              Theme,
              View,
@@ -88,7 +92,7 @@ define(['altair/facades/declare',
 
                 //set the path callback
                 this._app[verb](_url, this.hitch(function (req, res, next) {
-                    this.handleRequest(app, url, route, req, res, next);
+                    this.handleRequest(app, _url, route, req, res, next);
                 }));
 
 
@@ -116,19 +120,49 @@ define(['altair/facades/declare',
                 res     = new this.Response(_res),
                 layout  = _route.layout,
                 theme   = layout ? new this.Theme(app.path, _route.layout, renderer, _route) : undefined,
-                view    = _route.view && _.isString(_route.view) ? new this.View(app.path + _route.view, renderer) : _route.view;
+                view    = _route.view && _.isString(_route.view) ? new this.View(app.path + _route.view, renderer) : _route.view,
+                dfd,
+                multiForm;
 
-            //emit the event, then pass it to the controller
-            module.emit('did-receive-request', { //a request was received, create an event
-                url:        url,
-                request:    req,
-                response:   res,
-                theme:      theme,
-                route:      _route,
-                view:       view,
-                controller: _route.controller,
-                callback:   _route.callback,
-                routes:     app.routes
+            //pretend that post always worked! yay!!
+            if (req.method() === 'POST' && req.header('content-type').search('multipart') === 0) {
+
+                multiForm = new multiparty.Form();
+
+                dfd = this.promise(multiForm, 'parse', req.raw()).then(function (results) {
+
+                    var _values = mixin(results[0], results[1]),
+                        values  = {};
+
+
+                    _.each(_values, function (v, k) {
+                        values[k] = v.pop();
+                    });
+
+
+                    req.raw().body = values;
+
+                });
+
+
+            }
+
+            //give us time to parts multipart forms
+            this.when(dfd).then(function () {
+
+                //emit the event, then pass it to the controller
+                return module.emit('did-receive-request', {
+                    url:        url,
+                    request:    req,
+                    response:   res,
+                    theme:      theme,
+                    route:      _route,
+                    view:       view,
+                    controller: _route.controller,
+                    callback:   _route.callback,
+                    routes:     app.routes
+                });
+
             }).then(function (e) {
 
                 if(e.active) {
