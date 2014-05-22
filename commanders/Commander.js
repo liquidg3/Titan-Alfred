@@ -78,11 +78,11 @@ define(['altair/facades/declare',
             var schema = this.inherited(arguments),
                 strategies;
 
-            //the newModule command has some multiOptions that need updating (destination dir)
+            //the newModule command has some choices that need updating (destination dir)
             if(named === 'start' || named === 'startRecycle') {
 
                 strategies = this.parent.strategies();
-                schema.setOptionFor('strategy', 'multiOptions', strategies);
+                schema.setOptionFor('strategy', 'choices', strategies);
 
             }
 

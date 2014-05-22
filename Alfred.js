@@ -190,6 +190,20 @@ define(['altair/facades/declare',
 
             }));
 
+        },
+
+        teardown: function () {
+
+            return this.all(_.map(this._activeServers, function (server) {
+
+                return server.teardown();
+
+            }, this)).then(function () {
+
+                return this;
+
+            }.bind(this));
+
         }
 
     });
