@@ -6,9 +6,10 @@
         "liquidfire:Onyx":       ">=0.0.x"
     },
     "dependencies":       {
-        "express": ">=3.x",
-        "less":    ">=1.x",
-        "multiparty":  "3.2.5"
+        "express":    ">=3.x",
+        "less":       ">=1.x",
+        "multiparty": "3.2.5",
+        "mongodb":    "1.4.4"
     },
     "events":             {
         "register-server-strategies": "Tell me all about the strategies you have.",
