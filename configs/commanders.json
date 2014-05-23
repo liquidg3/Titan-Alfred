@@ -2,7 +2,7 @@
     "alfred": {
 
         "path":         "commanders/Commander",
-        "description":  "You personal web server",
+        "description":  "Your personal web server",
         "label":        "Alfred",
         "commands": {
 
