@@ -20,9 +20,8 @@
                 }
             },
             "startRecycle": {
-                "label": "Start a web server",
+                "label": "Start a web server and have it restart ever 10 seconds (test only)",
                 "description": "",
-                "aliases": ["go"],
                 "schema": {
                     "strategy": {
                         "type": "select",
