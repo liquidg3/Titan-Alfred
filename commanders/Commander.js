@@ -79,13 +79,13 @@ define(['altair/facades/declare',
          *
          * @param named
          */
-        schemaForCommand: function (named) {
+        schemaForCommand: function (command) {
 
             var schema = this.inherited(arguments),
                 strategies;
 
             //the newModule command has some choices that need updating (destination dir)
-            if(named === 'start' || named === 'startRecycle') {
+            if(command.callback === 'start' || command.callback === 'startRecycle') {
 
                 strategies = this.parent.strategies();
                 schema.setOptionFor('strategy', 'choices', strategies);
