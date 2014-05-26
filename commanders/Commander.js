@@ -44,6 +44,12 @@ define(['altair/facades/declare',
 
         },
 
+
+        /**
+         * Start a webserver that reboots every 5 seconds (I think there is an issue with express that breaks this ability)
+         *
+         * @param options
+         */
         startRecycle: function (options) {
 
             var recycle = this.hitch(function () {
