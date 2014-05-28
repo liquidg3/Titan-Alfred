@@ -193,6 +193,10 @@ define(['altair/facades/declare',
          */
         attachControllerToRoute: function (vendor, route, options) {
 
+            if(!route.action) {
+                throw new Error('Each route in your app.json needs an "action" that is the callback to invoked. Example: controllers/Admin::index');
+            }
+
             var foundry         = this._controllerFoundry,
                 path            = this._dir,
                 deferred        = new this.Deferred(),
