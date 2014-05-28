@@ -90,7 +90,7 @@ define(['altair/facades/declare',
                 });
 
 
-                return this.createDatabaseAdapters(appConfig.database.connections)
+                return this.createDatabaseAdapters(appConfig.database ? appConfig.database.connections : false)
                            .then(this.hitch('attachControllers',appConfig.vendor, appConfig.routes, controllerOptions))
                            .then(this.hitch('attachLayout', appConfig.routes))
                            .then(this.hitch('attachViews', appConfig.routes))
