@@ -202,7 +202,9 @@ define(['altair/facades/declare',
 
             }).then(function (body) {
 
-                res.send(body);
+                if(!res.beenSent()) {
+                    res.send(body);
+                }
 
                 return module.emit('did-send-response', {
                     body:       body,

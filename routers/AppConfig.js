@@ -70,7 +70,7 @@ define(['altair/facades/declare',
             var path = this._dir,
                 json = pathUtil.join(path, 'app');
 
-            return this.promise(require, ['altair/plugins/config!' + json + '.json']).then(this.hitch(function (config) {
+            return this.promise(require, ['altair/plugins/config!' + json]).then(this.hitch(function (config) {
 
                 if(!config) {
                     throw new Error('Could not find ' + json);
