@@ -21,21 +21,26 @@ define(['altair/facades/declare',
                 Module.extendOnce({
                     modelPath: './models',
                     _models: {},
-                    model: function (path, options, config) {
+                    model: function (named, options, config) {
 
-                        var _p = this.resolvePath(pathUtil.join(this.modelPath, path)),
+                        var _p = this.resolvePath(pathUtil.join(this.modelPath, named)),
                             _c = mixin({
                                 type: 'model',
-                                name: this.name.split('/')[0] + '/models/' + path
+                                name: this.name.split('/')[0] + '/models/' + named
                             }, config || {});
 
-                        if(this._models[path]) {
-                            return this._models[path];
+                        //if it's a nexus name, pass it off
+                        if(named.search(':') > 0) {
+                            return this.nexus(named, options, config);
                         }
 
-                        this._models[path] = this.forge(_p, options, _c);
+                        if(this._models[named]) {
+                            return this._models[named];
+                        }
 
-                        return this._models[path];
+                        this._models[named] = this.forge(_p, options, _c);
+
+                        return this._models[named];
 
                     }
                 });
