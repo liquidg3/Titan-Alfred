@@ -80,6 +80,7 @@ define(['altair/facades/declare',
                 var appConfig   = _.cloneDeep(config, true),
                     media       = appConfig.media || {};
 
+                appConfig.port = this.options.port;
                 appConfig.path = path;
 
                 this.log('loading', config.name);
