@@ -8,7 +8,14 @@ define(['altair/facades/declare',
              schema) {
 
     return declare([Lifecycle, _HasSchemaMixin], {
-        _schema: schema
+        _schema: schema,
+        http: function () {
+            throw new Error('You need to implement http() on your adapter and it should return an http server.');
+        },
+
+        router: function () {
+            return this.options.router;
+        }
     });
 
 });

@@ -31,6 +31,7 @@ define(['altair/facades/declare',
 
         _app:       null,
         _server:    null,
+        appConfig:  null,
         Theme:      Theme,
         View:       View,
         Request:    Request,
@@ -75,6 +76,9 @@ define(['altair/facades/declare',
 
             this._app.use(bodyParser());
 
+            //in case someone wants to reconfigure the app (minus routes of course since those are set prior to boot)
+            this.appConfig = app;
+
             this._app.use('/public', express.static(app.path + 'public'));
 
             //loop through each route
@@ -92,7 +96,7 @@ define(['altair/facades/declare',
 
                 //set the path callback
                 this._app[verb](_url, this.hitch(function (req, res, next) {
-                    this.handleRequest(app, _url, route, req, res, next);
+                    this.handleRequest(_url, route, req, res, next);
                 }));
 
 
@@ -111,9 +115,11 @@ define(['altair/facades/declare',
          * @param _res
          * @param next
          */
-        handleRequest: function (app, url, route, _req, _res, next) {
+        handleRequest: function (url, route, _req, _res, next) {
 
             var _route  = route,
+                app     = this.appConfig,
+                router  = app.router,
                 module  = this.parent,
                 renderer= module.nexus('liquidfire:Onyx'),
                 req     = new this.Request(_req),
@@ -133,7 +139,6 @@ define(['altair/facades/declare',
 
                     var _values = mixin(results[0], results[1]),
                         values  = {};
-
 
                     _.each(_values, function (v, k) {
                         values[k] = v.pop();
@@ -157,6 +162,7 @@ define(['altair/facades/declare',
                     response:   res,
                     theme:      theme,
                     route:      _route,
+                    router:     router,
                     view:       view,
                     controller: _route.controller,
                     callback:   _route.callback,
@@ -174,16 +180,29 @@ define(['altair/facades/declare',
 
             }).then(function (results) {
 
-                return module.emit('will-send-response', {
+                //we may not emit this event
+                var event = module.coerceEvent('will-render-theme', {
                     body:       results,
                     url:        url,
                     request:    req,
                     response:   res,
                     theme:      theme,
                     route:      _route,
+                    router:     router,
                     view:       view,
                     routes:     app.routes
                 });
+
+                if(theme) {
+
+                    return module.emit(event);
+
+                } else {
+
+                    return event;
+
+                }
+
 
             }).then(function (e) {
 
@@ -195,12 +214,60 @@ define(['altair/facades/declare',
 
                     body = e.get('theme').setBody(body).render();
 
+                } else {
+
+                    //clear out the theme if we are responding with an object (so did-render-theme will not hit)
+                    theme = null;
+
                 }
 
                 return when(body);
 
 
-            }).then(function (body) {
+            }).then(function (results) {
+
+                //we may not emit this event
+                var event = module.coerceEvent('did-render-theme', {
+                    body:       results,
+                    url:        url,
+                    request:    req,
+                    response:   res,
+                    theme:      theme,
+                    route:      _route,
+                    router:     router,
+                    view:       view,
+                    routes:     app.routes
+                });
+
+                if(theme) {
+
+                    return module.emit(event);
+
+                } else {
+
+                    return event;
+
+                }
+
+
+            }).then(function (e) {
+
+                return module.emit('will-send-response', {
+                    body:       e.get('body'),
+                    url:        url,
+                    request:    req,
+                    response:   res,
+                    theme:      theme,
+                    route:      _route,
+                    router:     router,
+                    view:       view,
+                    routes:     app.routes
+                });
+
+
+            }).then(function (e) {
+
+                var body = e.get('body');
 
                 if(!res.beenSent()) {
                     res.send(body);
@@ -212,12 +279,15 @@ define(['altair/facades/declare',
                     request:    req,
                     response:   res,
                     route:      _route,
+                    router:     router,
                     routes:     app.routes
                 });
 
 
             }).otherwise(this.hitch(function (err) {
+
                 this.onError(err, res);
+
             }));
 
 
@@ -235,6 +305,11 @@ define(['altair/facades/declare',
 
         },
 
+        /**
+         * Starts the server.
+         *
+         * @returns {*}
+         */
         execute: function () {
 
             this.deferred = new this.Deferred();
@@ -259,6 +334,20 @@ define(['altair/facades/declare',
             return this.inherited(arguments);
         },
 
+        /**
+         * The http server I am using.
+         *
+         * @returns {httpServer}
+         */
+        http: function () {
+            return this._server;
+        },
+
+        /**
+         * Close the server.
+         *
+         * @returns {*}
+         */
         teardown: function () {
 
             this.log('tearing down server');
