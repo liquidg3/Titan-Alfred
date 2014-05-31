@@ -65,11 +65,13 @@ define(['altair/facades/declare',
 
                 dfd =  this.forge(controller, options, { type: 'controller', startup: false, parent: null, name: controllerName, foundry: this.hitch(function (Class, options, config) {
 
+                    //override paths for things to be off the sitePath (vs relative to the controller)
                     Class.extendOnce({
-                        sitePath: path,
+                        sitePath:       path,
                         entityPath:     pathUtil.join(path, 'entities'),
                         modelPath:      pathUtil.join(path, 'models'),
-                        widgetPath:     pathUtil.join(path, 'widgets')
+                        widgetPath:     pathUtil.join(path, 'widgets'),
+                        viewPath:       pathUtil.join(path, 'views')
                     });
 
                     return config.defaultFoundry(Class, options, config).then(this.hitch(function (controller) {
@@ -78,6 +80,7 @@ define(['altair/facades/declare',
                         this._namespaces[namespace].push(controller);
 
                         return controller;
+
                     }));
 
                 })});
