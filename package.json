@@ -1,6 +1,6 @@
 {
     "name":               "titan:Alfred",
-    "version":            "0.0.4",
+    "version":            "0.0.6",
     "altairDependencies": {
         "altair:CommandCentral": ">=0.0.x",
         "liquidfire:Onyx":       ">=0.0.x"
@@ -16,6 +16,8 @@
         "will-execute-server":        "I'm about to invoke execute() on a server startegy",
         "did-execute-server":         "A web server has been started.",
         "did-receive-request":        "A request just came in, your chance to do something special",
+        "will-render-theme":          "I have all the page content and I'm about to drop it into the theme (if the requestent content type is text/html)",
+        "did-render-theme":           "Everything is rendered and about to be handed to the response.",
         "will-send-response":         "I'm about to send back a response",
         "did-send-response":          "I have sent a response to the end user"
     },

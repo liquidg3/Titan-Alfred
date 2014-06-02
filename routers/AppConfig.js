@@ -4,14 +4,16 @@ define(['altair/facades/declare',
         'altair/plugins/node!mkdirp',
         'lodash',
         'altair/Lifecycle',
-        'altair/facades/glob'
+        'altair/facades/glob',
+        'altair/facades/mixin',
 ], function (declare,
              pathUtil,
              fs,
              mkdirp,
              _,
              Lifecycle,
-             glob) {
+             glob,
+             mixin) {
 
     return declare([Lifecycle], {
 
@@ -294,9 +296,11 @@ define(['altair/facades/declare',
          *
          * @param path
          * @param routes the routes pulled from app.json
+         * @param append should be added to the end of the current media?
+         *
          * @returns {altair.Deferred}
          */
-        attachMedia: function (routes, globalMedia) {
+        attachMedia: function (routes, globalMedia, append) {
 
             var l = [],
                 resolving = {};
@@ -308,7 +312,7 @@ define(['altair/facades/declare',
                     route.media = {};
                 }
 
-                //if there is a global media, drop it into the rout and ignore the types it has
+                //if there is a global media, drop it into the route and ignore the types it has
                 if(globalMedia) {
 
                     var media = {};
@@ -317,7 +321,16 @@ define(['altair/facades/declare',
                         return _.isArray(a) ? a.concat(b) : undefined;
                     });
 
-                    route.media = media;
+                    //add global media to beginning or end?
+                    if(append) {
+
+                        route.media = mixin(media, route.media);
+
+                    } else {
+
+                        route.media = mixin(route.media, media);
+                    }
+
                 }
 
                 //loop through all media and resolve any nexus id's we find
@@ -326,7 +339,7 @@ define(['altair/facades/declare',
                     _.each(files, function (file, i) {
 
                         //is it a nexus id?
-                        if(file.search(':') > 0 && file.search('http') === -1) {
+                        if(file.search(':') > 0 && file.search('http') !== 0) {
 
                             if(_.has(resolving, file)) {
 
@@ -359,24 +372,26 @@ define(['altair/facades/declare',
         },
 
         /**
-         * Copy any media (css, js, less) that does not exist in web
-         * @param from
+         * Copy any media (css, js, less) that does not exist in web safe dir. Must be a path that has a .../public/css/..
+         * or .../public/js/.. or .../public/less/...
+         *
+         * @param from a path to file.
          */
         importMedia: function (from) {
 
             var to      = this._dir,
-                _from   = this.resolvePath(from),
+                qParts  = from.split('?'), //incase we have a query string
+                _from   = this.resolvePath(qParts.shift()),
                 parts   = _from.split('public'),
                 url     = pathUtil.join('/public/_copied/', parts.pop()),
                 dest    = pathUtil.join(to, url),
                 destDir = pathUtil.dirname(dest);
 
-
             return this.promise(mkdirp, destDir).then(function () {
 
                 fs.createReadStream(_from).pipe(fs.createWriteStream(dest));
 
-                return url;
+                return (qParts.length > 0) ? url + '?' + qParts.join('?') : url;
 
             });
 

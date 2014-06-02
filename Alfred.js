@@ -68,7 +68,6 @@ define(['altair/facades/declare',
 
         },
 
-
         /**
          * Startup a server by name
          *
@@ -98,7 +97,8 @@ define(['altair/facades/declare',
                 var _paths = {};
 
                 //pass the newly generated routes our server strategy
-                app = _app;
+                app         = _app;
+                app.router  = _router;
 
                 //map the vendor
                 if(!app.vendor) {
@@ -192,6 +192,20 @@ define(['altair/facades/declare',
 
         },
 
+        /**
+         * All the servers we have running.
+         *
+         * @returns {[]}
+         */
+        activeServers: function () {
+            return this._activeServers || [];
+        },
+
+        /**
+         * Tears down all active servers;
+         *
+         * @returns {*}
+         */
         teardown: function () {
 
             return this.all(_.map(this._activeServers, function (server) {

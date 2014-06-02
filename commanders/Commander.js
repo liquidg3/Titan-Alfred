@@ -26,6 +26,7 @@ define(['altair/facades/declare',
             //refresh strategies
             return this.parent.refreshStrategies().then(this.hitch(function (strategies) {
 
+               //forge one, but do not start it up
                return this.forge(strategies[named], null, { startup: false });
 
             })).then(this.hitch(function (server) {
