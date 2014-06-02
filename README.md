@@ -134,13 +134,11 @@ If you are using ejs you can define your main layout this way and <% body %> wil
     </head>
 
     <body class="page-body <%= bodyClass %>">
+        <div class="login-container">
+            <%- body %>
+        </div>
 
-
-    <div class="login-container">
-        <%- body %>
-    </div>
-
-    <%- js %>
+        <%- js %>
     </body>
     </html>
 ```
