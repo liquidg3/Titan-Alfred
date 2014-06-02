@@ -58,7 +58,7 @@ Create an /path/to/any/directory and drop this app.json into it.
         },
         "/user/dashboard": {
             "action": "controllers/User::dashboard",
-            layoutContext": {
+            "layoutContext": {
                 "title":     "Welcome to your dashboard",
                 "bodyClass": "dashboard-page"
             }
@@ -66,7 +66,7 @@ Create an /path/to/any/directory and drop this app.json into it.
         "/admin/profile/:id": {
             "action": "controllers/Admin::profileById",
             "authorize": true
-            layoutContext": {
+            "layoutContext": {
                 "title":     "Manage Profile",
                 "bodyClass": "profile-page"
             }
