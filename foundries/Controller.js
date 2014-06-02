@@ -68,10 +68,7 @@ define(['altair/facades/declare',
                     //override paths for things to be off the sitePath (vs relative to the controller)
                     Class.extendOnce({
                         sitePath:       path,
-                        entityPath:     pathUtil.join(path, 'entities'),
-                        modelPath:      pathUtil.join(path, 'models'),
-                        widgetPath:     pathUtil.join(path, 'widgets'),
-                        viewPath:       pathUtil.join(path, 'views')
+                        dir:            path
                     });
 
                     return config.defaultFoundry(Class, options, config).then(this.hitch(function (controller) {
