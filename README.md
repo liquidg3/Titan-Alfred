@@ -7,6 +7,19 @@ As with the Altair team core values regarding Committing on a convention, Alfred
 ( can be swapped out to meet your needs ). Consolodate supports a vast number of template engines that all of the
 hipsters can fight over which one is better, while they do that we can continue to make tomorrow more productive than today.
 
+## Before you start
+Everyone loves examples, why not show you how easy it is to set up before we get into the setup
+
+``` bash
+clone your repo and cd into that folder
+$ npm install altair.io -g
+$ altair thelodge package --packagePath app.json --destination home
+$ altair alfred go --strategy express3 --dir . --port 8080
+```
+
+Easy right!? Lets get this party started!
+
+
 ## Configuring routes
 Create an /path/to/any/directory and drop this app.json into it.
 
@@ -14,7 +27,7 @@ Create an /path/to/any/directory and drop this app.json into it.
 {
     "name": "Site Name",
     "vendor" : "altair",
-    "domain": "domain.com",1
+    "domain": "domain.com",
     "description" "A sweet website!",
      "dependencies": {
         "crypto": "0.0.3"
@@ -92,17 +105,11 @@ From the root directory you selected to configure your routes, you will need a f
         - admin.js
     - public
         - js
-            - global.js ( this will be included on every layout )
-            - front ( by layout )
-                - front.js ( everything in this dir will be included whenever the front layout is selected )
+            - all your js files go here
         - css
+            - all your css files go here
         - less
-            - all.less ( anything on the root level will be included in all layouts)
-            - dependencies.less ( will also be included on every page )
-            - front ( by layout )
-                - one.less
-                - two.less
-                - three.less
+            - guess what goes here? ... you guessed it, all of your less files go here!
     - views
         - layout.ejs ( Example Below )
         - admin
@@ -117,7 +124,7 @@ From the root directory you selected to configure your routes, you will need a f
 ```
 
 ## Example layout.ejs
-If you are using ejs you can define your main layout this way and <% body %> will be the view you defined in the controller
+If you are using ejs you can define your main layout this way and <%- body %> will be the view you defined in the controller
 
 ```
 
