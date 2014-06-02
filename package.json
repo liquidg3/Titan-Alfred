@@ -1,14 +1,15 @@
 {
     "name":               "titan:Alfred",
-    "version":            "0.0.6",
+    "version":            "0.0.7",
     "altairDependencies": {
         "altair:CommandCentral": ">=0.0.x",
         "liquidfire:Onyx":       ">=0.0.x"
     },
     "dependencies":       {
-        "express":    ">=3.x",
-        "less":       ">=1.x",
-        "multiparty": "3.2.5"
+        "express":     ">=3.x",
+        "less":        ">=1.x",
+        "multiparty":  "3.2.5",
+        "body-parser": ">=1.0.x"
     },
     "events":             {
         "register-server-strategies": "Tell me all about the strategies you have.",
