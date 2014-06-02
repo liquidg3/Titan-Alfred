@@ -4,7 +4,7 @@ A super simple, super thin module designed to provide a simple MVC architecture 
 using [expressjs](https://github.com/visionmedia/express).
 
 As with the Altair team core values regarding Committing on a convention, Alfred uses [Consolodate.js](https://github.com/visionmedia/consolidate.js/)
-( can be swapped out for a single view engine if desired ). Consolodate supports a vast number of template engines that all of the
+( can be swapped out to meet your needs ). Consolodate supports a vast number of template engines that all of the
 hipsters can fight over which one is better, while they do that we can continue to make tomorrow more productive than today.
 
 ## Configuring routes
@@ -14,7 +14,7 @@ Create an /path/to/any/directory and drop this app.json into it.
 {
     "name": "Site Name",
     "vendor" : "altair",
-    "domain": "domain.com",
+    "domain": "domain.com",1
     "description" "A sweet website!",
      "dependencies": {
         "crypto": "0.0.3"
