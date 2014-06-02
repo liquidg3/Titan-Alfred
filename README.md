@@ -1,9 +1,8 @@
 # Alfred
 
-A super simple, super thin module designed to provide a simple MVC architecture for web apps in Altair using express.
-
-As with the Altair team core values regarding Committing on a convention, Alfred uses Consolodate.js ( can be swapped
-out for a single view engine if desired ). Consolodate supports a vast number of template engines that all of the
+A super simple, super thin module designed to provide a simple MVC architecture for web apps in [Altair](https://github.com/liquidg3/altair)
+using express. As with the Altair team core values regarding Committing on a convention, Alfred uses [Consolodate.js](https://github.com/visionmedia/consolidate.js/)
+( can be swapped out for a single view engine if desired ). Consolodate supports a vast number of template engines that all of the
 hipsters can fight over which one is better, while they do that we can continue to make tomorrow more productive than today.
 
 ## Configuring routes
@@ -80,7 +79,7 @@ Create an /path/to/any/directory and drop this app.json into it.
 ```
 
 ## Structure
-From the root directory you selected to configure your routes, you will need a few folders. For this example we are using expressjs and the .ejs files but the file structure will be the same.
+From the root directory you selected to configure your routes, you will need a few folders. For this example we are using [expressjs](https://github.com/visionmedia/express) and the [.ejs](https://github.com/visionmedia/ejs) files but the file structure will be the same.
 
 ```
 - /
