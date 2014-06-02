@@ -7,18 +7,6 @@ As with the Altair team core values regarding Committing on a convention, Alfred
 ( can be swapped out to meet your needs ). Consolodate supports a vast number of template engines that all of the
 hipsters can fight over which one is better, while they do that we can continue to make tomorrow more productive than today.
 
-## Before you start
-Everyone loves examples, why not show you how easy it is to set up before we get into the setup
-
-``` bash
-clone your repo and cd into that folder
-$ npm install altair.io -g
-$ altair thelodge package --packagePath app.json --destination home
-$ altair alfred go --strategy express3 --dir . --port 8080
-```
-
-Easy right!? Lets get this party started!
-
 
 ## Configuring routes
 Create an /path/to/any/directory and drop this app.json into it.
@@ -168,6 +156,16 @@ supporting myCustomCode include from the above example.
         });
     });
 
+```
+
+## Launching your web server
+Now that we have all that set up
+
+``` bash
+make sure you are in your site path directory ( where you app.json file is ).
+$ npm install altair.io -g
+$ altair thelodge package --packagePath app.json --destination home
+$ altair alfred go --strategy express3 --dir . --port 8080
 ```
 
 ## Troubleshooting
