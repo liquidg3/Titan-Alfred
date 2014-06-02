@@ -2,6 +2,10 @@
 
 A super simple, super thin module designed to provide a simple MVC architecture for web apps in Altair using express.
 
+As with the Altair team core values regarding Committing on a convention, Alfred uses Consolodate.js ( can be swapped
+out for a single view engine if desired ). Consolodate supports a vast number of template engines that all of the
+hipsters can fight over which one is better, while they do that we can continue to make tomorrow more productive than today.
+
 ## Configuring routes
 Create an /path/to/any/directory and drop this app.json into it.
 
@@ -117,25 +121,15 @@ If you are using ejs you can define your main layout this way and <% body %> wil
 ```
 
     <!DOCTYPE html>
-    <!--[if lt IE 7]>
-    <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
-    <!--[if IE 7]>
-    <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
-    <!--[if IE 8]>
-    <html class="no-js lt-ie9"> <![endif]-->
-    <!--[if gt IE 8]><!-->
-    <html class="no-js"> <!--<![endif]-->
     <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <title><%= title %></title>
-        <meta name="description" content="A description">
         <%- css %>
     </head>
 
     <body class="page-body <%= bodyClass %>">
         <div class="login-container">
             <%- body %>
+            <%- myCustomCode %> <!-- Compile time include tags can be setup in the render of the controller -->
         </div>
         <%- js %>
     </body>
@@ -143,7 +137,9 @@ If you are using ejs you can define your main layout this way and <% body %> wil
 ```
 
 ## Controller Stub
-The default stub layout for a controller defining the startup and index ( on page load ) stubs
+The default stub layout for a controller defining the startup and index ( on page load ) stubs, if you wish to add in your own
+compile time include tags you can do so by passing it into the render of the view. In this example we are creating the
+supporting myCustomCode include from the above example.
 
 ```
 
@@ -157,7 +153,9 @@ The default stub layout for a controller defining the startup and index ( on pag
                 return this.inherited(arguments);
             },
             index: function(e) {
-                return e.get('view').render();
+                return e.get('view').render({
+                    myCustomCode: "Taco Fight"
+                });
             }
         });
     });
