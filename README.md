@@ -137,7 +137,6 @@ If you are using ejs you can define your main layout this way and <% body %> wil
         <div class="login-container">
             <%- body %>
         </div>
-
         <%- js %>
     </body>
     </html>
