@@ -202,7 +202,7 @@ define(['altair/facades/declare',
             var foundry         = this._controllerFoundry,
                 path            = this._dir,
                 deferred        = new this.Deferred(),
-                action          = route.action.split('::').pop(),//action comes in form controlle/Name::action
+                action          = route.action.split('::').pop(),//action comes in form controller/Name::action
                 attach          = this.hitch(function (controller) {
 
                     if(!controller[action]) {
