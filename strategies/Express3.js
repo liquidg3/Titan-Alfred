@@ -74,9 +74,10 @@ define(['altair/facades/declare',
 
             var module      = this.parent;
 
-            this._app.use(bodyParser());
+            this._app.use(bodyParser.json());       // to support JSON-encoded bodies
+            this._app.use(bodyParser.urlencoded({extended: true}));
 
-            //in case someone wants to reconfigure the app (minus routes of course since those are set prior to boot)
+            //in case someone wants to reconfigure the app (minus routes of course since those are set during startup)
             this.appConfig = app;
 
             this._app.use('/public', express.static(app.path + 'public'));
