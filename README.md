@@ -9,7 +9,7 @@ hipsters can fight over which one is better, while they do that we can continue 
 
 
 ## Configuring routes
-Create an /path/to/any/directory and drop this app.json into it.
+Create an /path/to/any/directory and drop this package.json into it.
 
 ```json
 {

@@ -61,7 +61,7 @@ define(['altair/facades/declare',
         },
 
         /**
-         * Looks in the path for an app.json, then loads the files and sets up callbacks for the routes
+         * Looks in the path for an package.json, then loads the files and sets up callbacks for the routes
          *
          * @param options override any local prop
          * @param controllerOptions any options you want passed to your controller for startup
@@ -70,7 +70,7 @@ define(['altair/facades/declare',
         generateAppConfig: function (controllerOptions) {
 
             var path = this._dir,
-                json = pathUtil.join(path, 'app');
+                json = pathUtil.join(path, 'package');
 
             return this.promise(require, ['altair/plugins/config!' + json]).then(this.hitch(function (config) {
 
@@ -90,7 +90,6 @@ define(['altair/facades/declare',
                 _.each(appConfig.routes, function (route, url) {
                     route.url = url;
                 });
-
 
                 return this.createDatabaseAdapters(appConfig.database ? appConfig.database.connections : false)
                            .then(this.hitch('attachControllers',appConfig.vendor, appConfig.routes, controllerOptions))
