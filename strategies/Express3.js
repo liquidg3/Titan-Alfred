@@ -141,7 +141,11 @@ define(['altair/facades/declare',
                         values = {};
 
                     _.each(_values, function (v, k) {
-                        values[k] = v.pop();
+                        if(k.search(/\[\]/) > 0) {
+                            values[k.replace('[]', '')] = v;
+                        } else {
+                            values[k] = v.pop();
+                        }
                     });
 
 
