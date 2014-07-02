@@ -131,7 +131,7 @@ define(['altair/facades/declare',
                 multiForm;
 
             //pretend that post always worked! yay!!
-            if (req.method() === 'POST' && req.header('content-type').search('multipart') === 0) {
+            if (req.method() === 'POST' && req.header('content-type') && req.header('content-type').search('multipart') === 0) {
 
                 multiForm = new multiparty.Form();
 
