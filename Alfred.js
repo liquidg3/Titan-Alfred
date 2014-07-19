@@ -74,15 +74,17 @@ define(['altair/facades/declare',
 
             var _options = options || this.options || {};
 
-            if(_options.site) {
+            if (_options.site) {
 
                 this.assert(!!_options.site.options, 'You must pass your site options. See README.md for more details.');
 
-                if(!_options.site.options.dir) {
+                if (!_options.site.options.dir) {
                     _options.site.options.dir = this.nexus('Altair').resolvePath('.');
                 }
 
-                this.deferred = this.startupServer(_options.site.strategy, _options.site.options);
+                this.deferred = this.refreshStrategies().then(function () {
+                    return this.startupServer(_options.site.strategy, _options.site.options);
+                }.bind(this));
 
             }
 
@@ -103,6 +105,7 @@ define(['altair/facades/declare',
                 _router,
                 server;
 
+            this.assert(!!this._strategies, 'You must call refreshStrategies before starting up a titan:Alfred web server.')
             this.assert(!!this._strategies[strategy], 'You must pass a valid web server strategy to titan:Alfred');
 
             //pass controller foundry to the router
