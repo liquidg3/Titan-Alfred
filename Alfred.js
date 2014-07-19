@@ -68,6 +68,20 @@ define(['altair/facades/declare',
 
         },
 
+        execute: function (options) {
+
+            var _options = options || this.options || {};
+
+            if(_options.routes) {
+
+                this.startupServer(_options.routes.strategy, _options.routes);
+
+            }
+
+            return this.inherited(arguments);
+
+        },
+
         /**
          * Startup a server by name
          *

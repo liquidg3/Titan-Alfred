@@ -44,6 +44,23 @@
                             "default":     ".",
                             "description": "Where would you like your new site forged?"
                         }
+                    },
+                    "vendor":      {
+                        "type":    "string",
+                        "options": {
+                            "pattern":     "[a-z]",
+                            "label":       "vendor name",
+                            "description": "A vendor is usually the name of your company or organization."
+
+                        }
+                    },
+                    "domain":      {
+                        "type":    "string",
+                        "options": {
+                            "label":       "domain name",
+                            "description": "For when you write out absolute URL's (for emails and such), e.g. google.com"
+
+                        }
                     }
                 }
 

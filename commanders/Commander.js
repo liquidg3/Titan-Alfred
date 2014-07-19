@@ -1,6 +1,9 @@
 define(['altair/facades/declare',
-    'altair/modules/commandcentral/mixins/_IsCommanderMixin'],
-    function (declare, _IsCommanderMixin) {
+        'altair/modules/commandcentral/mixins/_IsCommanderMixin',
+        'altair/plugins/node!fs',
+        'lodash'
+],
+    function (declare, _IsCommanderMixin, fs, _) {
 
         return declare([_IsCommanderMixin], {
 
@@ -27,20 +30,20 @@ define(['altair/facades/declare',
                 //refresh strategies
                 return this.parent.refreshStrategies().then(this.hitch(function (strategies) {
 
-                        //forge one, but do not start it up
-                        return this.forge(strategies[named], null, { startup: false });
+                    //forge one, but do not start it up
+                    return this.forge(strategies[named], null, { startup: false });
 
-                    })).then(this.hitch(function (server) {
+                })).then(this.hitch(function (server) {
 
-                        //prompt user for schema
-                        return this.form(server.schema());
+                    //prompt user for schema
+                    return this.form(server.schema());
 
-                    })).then(this.hitch(function (values) {
+                })).then(this.hitch(function (values) {
 
-                        //start the new server
-                        return this.parent.startupServer(named, values).otherwise(this.hitch('log'));
+                    //start the new server
+                    return this.parent.startupServer(named, values).otherwise(this.hitch('log'));
 
-                    }));
+                }));
 
 
             },
@@ -107,24 +110,71 @@ define(['altair/facades/declare',
 
                 this.writeLine('forging new website...');
 
-                var from = this.parent.resolvePath('templates/web'),
-                    dfd = new this.Deferred();
+                var dfd = new this.Deferred(),
+                    from = this.parent.resolvePath('templates/web'),
+                    moduleConfig;
 
                 this.writeLine('forging new altair app.');
 
-                this.parent.forge('altair:TheForge/foundry/Copier').then(function (copier) {
+                //first forge an app
+                return this.forge('altair:TheForge/models/App').then(function (app) {
 
-                    copier.execute(from, values.destination, {}).step(function (step) {
+                    return app.forge(values.destination).step(function (step) {
+                        this.writeLine(step.message, step.type);
+                    }.bind(this));
+
+                }.bind(this)).then(function (results) {
+
+                    this.writeLine('app forged, configuring modules.json');
+
+                    //get the database config so we can modify it
+                    moduleConfig = _.where(_.flatten(results), function (obj) {
+                        return obj.file === 'modules.json';
+                    })[0];
+
+                    return this.parseConfig(moduleConfig.to);
+
+                }.bind(this)).then(function (config) {
+
+                    if (!config['titan:Alfred']) {
+
+                        this.writeLine('no titan:Alfred block exists, creating now.');
+
+                        config['titan:Alfred'] = {
+                            '$ref': './alfred.json'
+                        };
+
+                        return this.promise(fs, 'writeFile', moduleConfig.to, JSON.stringify(config, null, 4));
+
+
+                    } else {
+
+                        this.writeLine('titan:Alfred block already exists, skipping config.');
+                    }
+
+                }.bind(this)).then(function () {
+
+                    this.writeLine('app forge and configuration complete, forging site');
+
+                    return this.parent.forge('altair:TheForge/models/Copier');
+
+                }.bind(this)).then(function (copier) {
+
+                    return copier.execute(from, values.destination, values).step(function (step) {
 
                         this.writeLine(step.message, step.type || '');
 
-                    }.bind(this)).then(function (results) {
+                    }.bind(this));
 
-                        this.writeLine('Forge complete.');
 
-                        dfd.resolve(this);
+                }.bind(this)).then(function (results) {
 
-                    }.bind(this)).otherwise(this.hitch(dfd, 'reject'));
+                    this.writeLine('site created at: ' + values.destination);
+                    this.writeLine('run the following commands:', 'h1');
+                    this.writeLine('-----------------------');
+                    this.writeLine('| $cd ' + values.destination);
+                    this.writeLine('| $altair');
+                    this.writeLine('-----------------------');
 
                 }.bind(this));
 

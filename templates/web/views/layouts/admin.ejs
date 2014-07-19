@@ -10,22 +10,20 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title><%= title %></title>
+    <title><%%= title %%></title>
     <meta name="description" content="A description">
-    <%- css %>
+    <%%- css %%>
 </head>
 
-<body class="page-body <%= bodyClass %>">
+<body class="page-body <%%= bodyClass %%>">
+<div class="page-container horizontal-menu">
 
+    <%% include ../partials/notices.ejs %%>
 
-<div class="login-container">
-
-    <% include partials/notices.ejs %>
-
-    <%- body %>
+    <%%- body %%>
 
 </div>
 
-<%- js %>
+<%%- js %%>
 </body>
 </html>
