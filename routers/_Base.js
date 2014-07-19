@@ -180,9 +180,9 @@ define(['altair/facades/declare',
 
             }).otherwise(this.hitch(function (err) {
 
-                    this.log(err);
+                this.log(err);
 
-                }));
+            }));
 
 
             return deferred;
@@ -370,7 +370,7 @@ define(['altair/facades/declare',
 
             _.each(routes, function (route) {
 
-                var name = route.controller.name.split('/').pop().toLowerCase(),
+                var name = route.layout || route.controller.name.split('/').pop().toLowerCase(),
                     d = new this.Deferred(),
                     candidates = [
                         path + 'views/layout.*',
@@ -411,8 +411,8 @@ define(['altair/facades/declare',
 
             _.each(routes, function (route) {
 
-                var name = route.controller.name.split('/').pop().toLowerCase(),
-                    action = route.action,
+                var name = route.view || route.controller.name.split('/').pop().toLowerCase(),
+                    action = route.action.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase(),
                     d = new this.Deferred(),
                     candidates = [
                         path + 'views/' + name + '.*',
