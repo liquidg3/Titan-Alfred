@@ -16,7 +16,8 @@ define(['altair/facades/declare',
         './mixins/_HasServerStrategiesMixin',
         './nexusresolvers/Controllers',
         'require',
-        './extensions/Model'
+        './extensions/Model',
+        'altair/mixins/_AssertMixin'
 ], function (declare,
              _,
              _HasSchemaMixin,
@@ -24,9 +25,10 @@ define(['altair/facades/declare',
              _HasServerStrategiesMixin,
              ControllersResolver,
              require,
-             ModelExtension) {
+             ModelExtension,
+             _AssertMixin) {
 
-    return declare([_HasSchemaMixin, _HasCommandersMixin, _HasServerStrategiesMixin], {
+    return declare([_HasSchemaMixin, _HasCommandersMixin, _HasServerStrategiesMixin, _AssertMixin], {
 
         //all the strategies we have registered, key is name, value is nexus id
         _strategies:    null,
@@ -72,9 +74,15 @@ define(['altair/facades/declare',
 
             var _options = options || this.options || {};
 
-            if(_options.routes) {
+            if(_options.site) {
 
-                this.startupServer(_options.routes.strategy, _options.routes);
+                this.assert(!!_options.site.options, 'You must pass your site options. See README.md for more details.');
+
+                if(!_options.site.options.dir) {
+                    _options.site.options.dir = this.nexus('Altair').resolvePath('.');
+                }
+
+                this.deferred = this.startupServer(_options.site.strategy, _options.site.options);
 
             }
 
@@ -95,11 +103,13 @@ define(['altair/facades/declare',
                 _router,
                 server;
 
+            this.assert(!!this._strategies[strategy], 'You must pass a valid web server strategy to titan:Alfred');
+
             //pass controller foundry to the router
             app.controllerFoundry = this._controllerFoundry;
 
             //create a router
-            return this.forge(app.router || 'routers/AppConfig', app).then(function (router) {
+            return this.forge(app.router || 'routers/Config', app).then(function (router) {
 
                 _router = router;
 
@@ -116,7 +126,7 @@ define(['altair/facades/declare',
 
                 //map the vendor
                 if(!app.vendor) {
-                    throw new Error('You must set a vendor in your app config.');
+                    throw new Error('You must set a vendor in your site config.');
                 }
 
                 //include paths

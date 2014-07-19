@@ -40,7 +40,8 @@ define(['altair/facades/declare',
 
                 })).then(this.hitch(function (values) {
 
-                    //start the new server
+                    //start the new server and user the router that parses packages
+                    values.router = 'routers/Package';
                     return this.parent.startupServer(named, values).otherwise(this.hitch('log'));
 
                 }));
@@ -112,7 +113,8 @@ define(['altair/facades/declare',
 
                 var dfd = new this.Deferred(),
                     from = this.parent.resolvePath('templates/web'),
-                    moduleConfig;
+                    moduleConfig,
+                    devModuleConfig;
 
                 this.writeLine('forging new altair app.');
 
@@ -132,25 +134,55 @@ define(['altair/facades/declare',
                         return obj.file === 'modules.json';
                     })[0];
 
-                    return this.parseConfig(moduleConfig.to);
+                    devModuleConfig = _.where(_.flatten(results), function (obj) {
+                        return obj.file === 'modules-dev.json';
+                    })[0];
 
-                }.bind(this)).then(function (config) {
+                    return this.all({
+                        default:    this.parseConfig(moduleConfig.to),
+                        dev:        this.parseConfig(devModuleConfig.to)
+                    });
 
-                    if (!config['titan:Alfred']) {
+                }.bind(this)).then(function (configs) {
+
+                    var all = [];
+
+
+                    if (!configs.default['titan:Alfred']) {
 
                         this.writeLine('no titan:Alfred block exists, creating now.');
 
-                        config['titan:Alfred'] = {
+                        configs.default['titan:Alfred'] = {
                             '$ref': './alfred.json'
                         };
 
-                        return this.promise(fs, 'writeFile', moduleConfig.to, JSON.stringify(config, null, 4));
+                        all.push(this.promise(fs, 'writeFile', moduleConfig.to, JSON.stringify(configs.default, null, 4)));
 
 
                     } else {
 
                         this.writeLine('titan:Alfred block already exists, skipping config.');
                     }
+
+                    if (!configs.dev['titan:Alfred']) {
+
+                        this.writeLine('no titan:Alfred dev block exists, creating now.');
+
+                        configs.dev['titan:Alfred'] = {
+                            '$ref': './alfred-dev.json'
+                        };
+
+                        all.push(this.promise(fs, 'writeFile', devModuleConfig.to, JSON.stringify(configs.dev, null, 4)));
+
+
+                    } else {
+
+                        this.writeLine('titan:Alfred dev block already exists, skipping config.');
+                    }
+
+
+                    return this.all(all);
+
 
                 }.bind(this)).then(function () {
 

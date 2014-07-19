@@ -8,85 +8,24 @@ As with the Altair team core values regarding Committing on a convention, Alfred
 hipsters can fight over which one is better, while they do that we can continue to make tomorrow more productive than today.
 
 
-## Configuring routes
-Create an /path/to/any/directory and drop this package.json into it.
+## Creating your first site
 
-```json
-{
-    "name": "Site Name",
-    "vendor" : "altair",
-    "domain": "domain.com",
-    "description" "A sweet website!",
-     "dependencies": {
-        "crypto": "0.0.3"
-    },
-    "altairDependencies": {
-        "titan:Alfred":       ">=0.0.x"
-    },
-    "database":           {
-        "connections": [
-            {
-                "path":    "altair/cartridges/database/adapters/Mongodb",
-                "options": {
-                    "alias":            "mongo",
-                    "connectionString": "mongodb://localhost/altair"
-                }
-            }
-        ]
-    },
-    "media": {
-        "css":  [
-            "/public/css/bootstrap.css"
-        ],
-        "less": [
-            "/public/less/index.less"
-        ],
-        "js":   [
-            "/public/js/jquery.js"
-        ]
-    },
-    "routes": {
-        "/": {
-            "action": "controllers/Index::index",
-            "layoutContext": {
-                "title":     "Homepage",
-                "bodyClass": "home-page"
-            }
-        },
-        "/users": {
-            "action": "controllers/User::index",
-            "customParameter": "Taco Street Fight", ( You can add in extra parameters and access them in the controller by doing e.get('route').customParameter )
-            "resultProps":   ["Jon", "TommyDog"], ( We can get custom arrays too! )
-            "layoutContext": {
-                "title":     "Users",
-                "bodyClass": "user-page"
-            }
-        },
-        "/user/dashboard": {
-            "action": "controllers/User::dashboard",
-            "layoutContext": {
-                "title":     "Welcome to your dashboard",
-                "bodyClass": "dashboard-page"
-            }
-        },
-        "/admin/profile/:id": {
-            "action": "controllers/Admin::profileById",
-            "authorize": true,
-            "layoutContext": {
-                "title":     "Manage Profile",
-                "bodyClass": "profile-page"
-            }
-        }
-    }
-}
+```bash
+$ cd path/to/any/dir
+$ altair alfred forge
 ```
+
+This will walk you through creating your first site. It's pretty simple.
 
 ## Structure
 From the root directory you selected to configure your routes, you will need a few folders. For this example we are using expressjs and the [.ejs](https://github.com/visionmedia/ejs) files but the file structure will be the same.
 
 ```
 - /
-    - app.json ( contains routes, configs, javascript, database adapter settings, node and altair dependencies )
+    - configs
+        - alfred.json ( contains routes, configs, javascript, database adapter settings, node and altair dependencies )
+        - alfred-dev.json ( override for your dev environment )
+        - ... (there are a few more files Altair drops in for your convenience);
     - controllers
         - index.js ( controller for root page )
         - user.js
@@ -110,6 +49,15 @@ From the root directory you selected to configure your routes, you will need a f
             - user.ejs
             - front.ejs
 ```
+
+
+## Configuring routes
+Once your site has been forged, you can configure alfred in 1 of 2 places.
+
+`/path/to/site/configs/alfred.json` and `/path/to/site/configs/alfred-dev.json`
+
+The `alfred-dev.json` config will override anything in `alfred.json`.
+
 
 ## Example layout.ejs
 If you are using ejs you can define your main layout this way and <%- body %> will be the view you defined in the controller
@@ -159,14 +107,14 @@ supporting myCustomCode include from the above example.
 ```
 
 ## Launching your web server
-Now that we have all that set up
+Now that we have all that set up....
 
 ``` bash
-make sure you are in your site path directory ( where you app.json file is ).
-$ npm install altair.io -g
-$ altair thelodge package --packagePath app.json --destination home
-$ altair alfred go --strategy express3 --dir . --port 8080
+$ cd /path/to/site
+$ altair
 ```
+
+Is all you need to get started!
 
 ## Troubleshooting
 If you do not see your files getting included properly ( css, js, etc... ) restart the alfred server

@@ -1,6 +1,7 @@
 {
-    "selectedAdapter": "express3",
-    "site":            {
+    "strategy": "express3",
+    "options":  {
+        "port":   80,
         "vendor": "%(vendor)s",
         "domain": "%(domain)s",
         "media":  {
