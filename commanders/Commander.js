@@ -148,11 +148,11 @@ define(['altair/facades/declare',
                     var all = [];
 
 
-                    if (!configs.default['titan:Alfred']) {
+                    if (!configs['default']['titan:Alfred']) {
 
                         this.writeLine('no titan:Alfred block exists, creating now.');
 
-                        configs.default['titan:Alfred'] = {
+                        configs['default']['titan:Alfred'] = {
                             '$ref': './alfred.json'
                         };
 

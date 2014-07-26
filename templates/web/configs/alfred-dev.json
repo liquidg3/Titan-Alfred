@@ -1,5 +1,7 @@
 {
-    "options": {
-        "port": 8080
+    "site": {
+        "options": {
+            "port": 8080
+        }
     }
 }
