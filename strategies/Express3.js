@@ -196,13 +196,16 @@ define(['altair/facades/declare',
 
 
                 if (e.active) {
+
                     return when(e.get('callback')(e)).then(function (response) {
 
                         //in case the theme has been modified
                         theme = e.get('theme');
 
                         return response;
+
                     });
+
                 } else {
                     return e.get('body');
                 }

@@ -24,6 +24,10 @@ define(['altair/facades/declare', 'lodash'], function (declare, _) {
             return this._res.redirect.apply(this._res, _.toArray(arguments));
         },
 
+        location: function () {
+            return this._res.location.apply(this._res, _.toArray(arguments));
+        },
+
         beenSent: function () {
             return this._res.headersSent;
         }
