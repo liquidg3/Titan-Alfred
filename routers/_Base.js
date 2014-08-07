@@ -295,7 +295,7 @@ define(['altair/facades/declare',
                     _.each(files, function (file, i) {
 
                         //is it a nexus id?
-                        if (file.search(':') > 0 && file.search('http') === -1) {
+                        if (file.search(':') > 0 && file.search('http') === -1 && file.search('//') !== 0) {
 
                             if (_.has(resolving, file)) {
 

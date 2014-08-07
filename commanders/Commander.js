@@ -116,12 +116,14 @@ define(['altair/facades/declare',
                     moduleConfig,
                     devModuleConfig;
 
+                values.name = 'webapp';
+
                 this.writeLine('forging new altair app.');
 
                 //first forge an app
                 return this.forge('altair:TheForge/models/App').then(function (app) {
 
-                    return app.forge(values.destination).step(function (step) {
+                    return app.forge(values.destination, values).step(function (step) {
                         this.writeLine(step.message, step.type);
                     }.bind(this));
 
