@@ -21,13 +21,20 @@ define(['altair/facades/declare',
 
             var d,
                 path,
-                _item = item;
+                _item = item,
+                tag   = '<link rel="stylesheet" href="' + _item + '">',
+                lessUrl = _item.replace('/less/', '/_compiled/').replace('.less', '.css'),
+                lessTag = '<link rel="stylesheet" href="' + lessUrl  + '">';
 
             //compile less for now
             if(_item.search('.less') > 0) {
 
                 path    = this._basePath + _item;
                 d       = new Deferred();
+
+                if(this.options.autoCompileLess !== true) {
+                    return lessTag;
+                }
 
                 fs.readFile(path, function (err, contents) {
 
@@ -45,7 +52,6 @@ define(['altair/facades/declare',
                             } else {
 
                                 path    = path.replace('/less/', '/_compiled/').replace('.less', '.css');
-                                _item   = _item.replace('/less/', '/_compiled/').replace('.less', '.css');
 
                                 mkdirp(pathUtil.dirname(path), function (err) {
 
@@ -54,7 +60,7 @@ define(['altair/facades/declare',
                                         if(err) {
                                             d.reject(err);
                                         } else {
-                                            d.resolve('<link rel="stylesheet" href="' + _item + '">');
+                                            d.resolve(lessTag);
                                         }
 
                                     });
@@ -71,7 +77,7 @@ define(['altair/facades/declare',
 
 
             } else {
-                d = '<link rel="stylesheet" href="' + _item + '">';
+                d = tag;
             }
 
             return d;

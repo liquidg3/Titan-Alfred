@@ -94,7 +94,7 @@ define(['altair/facades/declare',
 
                     _.each(app.ca, function (path) {
 
-                        this.ssl.ca.push(read(altair.resolvePath(path)));
+                        this.ssl.ca.push(altair.resolvePath(path));
 
                     }, this);
 

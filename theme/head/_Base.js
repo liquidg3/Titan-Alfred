@@ -15,13 +15,15 @@ define(['altair/facades/declare',
         _extensions: null,
         _items: null,
         _basePath: null,
+        options: null,
 
 
-        constructor: function (basePath, renderer) {
+        constructor: function (basePath, renderer, options) {
 
             this._renderer = renderer;
             this._items    = [];
             this._basePath = basePath;
+            this.options   = options || {};
 
             if(!basePath) {
                 throw new Error('A basePath is required for your theme\'s head tags.');

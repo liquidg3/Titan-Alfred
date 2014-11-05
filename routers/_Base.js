@@ -291,6 +291,11 @@ define(['altair/facades/declare',
                 //loop through all media and resolve any nexus id's we find
                 _.each(route.media, function (files, type) {
 
+                    if (!_.isArray(files)) {
+                        route.media[type] = files;
+                        return;
+                    }
+
                     _.each(files, function (file, i) {
 
                         //is it a nexus id?

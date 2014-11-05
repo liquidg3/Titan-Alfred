@@ -36,8 +36,8 @@ define(['altair/facades/declare',
             this.context        = _.cloneDeep((options && options.layoutContext) ? options.layoutContext : {});
             this._basePath      = basePath || '';
             this._layout        = layout || 'views/layout';
-            this._headLink      = (options && options.headLink) || new HeadLink(basePath, renderer);
-            this._headScript    = (options && options.headScript) || new HeadScript(basePath, renderer);
+            this._headLink      = (options && options.headLink) || new HeadLink(basePath, renderer, options.media || {});
+            this._headScript    = (options && options.headScript) || new HeadScript(basePath, renderer, options.media || {});
             this._renderer      = renderer;
 
             var heads = [this._headScript, this._headLink];
