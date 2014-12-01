@@ -22,7 +22,7 @@ define(['altair/facades/declare',
         nameForRoute: function (vendor, route) {
 
             var callbackParts   = route.action.split('::'),
-                controllerName  = vendor + ':*/' + callbackParts[0];
+                controllerName  = callbackParts[0].indexOf(':') == -1 ? vendor + ':*/' + callbackParts[0] : callbackParts[0];
 
             return controllerName;
         },
@@ -46,34 +46,53 @@ define(['altair/facades/declare',
         forgeForRoute: function (path, vendor, route, options) {
 
             var callbackParts   = route.action.split('::'),
-                controller      = pathUtil.join(path, callbackParts[0]),
                 controllerName  = this.nameForRoute(vendor, route),
-                namespace       = controllerName.split('/').shift(),
-                dfd;
+                controller      = controllerName == callbackParts[0] ? null : pathUtil.join(path, callbackParts[0]);
+
+
+            return this.forgeController(controllerName, options, controller, false)
+
+        },
+
+        forgeController: function (named, options, path, startup) {
+
+            var dfd,
+                sitePath,
+                namespace       = named.split('/').shift();
+
+            path = path || this.parent.resolvePath(named);
+
+            //are we starting up the controller?
+            if (_.isUndefined(startup)) {
+                startup = true;
+            }
+
+            //build sitePath
+            sitePath = pathUtil.resolve(pathUtil.join(path, '..', '..'));
 
             //track all the namespaces (1 per site)
             if (!this._namespaces[namespace]) {
                 this._namespaces[namespace] = [];
             }
 
+            //controller already ready
+            if (_.has(this._controllers, named)) {
 
-            if (_.has(this._controllers, controllerName)) {
-
-                dfd = this.when(this._controllers[controllerName]);
+                dfd = this.when(this._controllers[named]);
 
             } else {
 
-                dfd =  this.forge(controller, options, { type: 'controller', startup: false, parent: null, name: controllerName, foundry: this.hitch(function (Class, options, config) {
+                dfd =  this.forge(path || named, options, { type: 'controller', startup: startup, parent: null, name: named, foundry: this.hitch(function (Class, options, config) {
 
                     //override paths for things to be off the sitePath (vs relative to the controller)
                     Class.extendOnce({
-                        sitePath:       path,
-                        dir:            path
+                        sitePath:       sitePath,
+                        dir:            sitePath
                     });
 
                     var controller = config.defaultFoundry(Class, options, config);
 
-                    this._controllers[controllerName] = controller;
+                    this._controllers[named] = controller;
                     this._namespaces[namespace].push(controller);
 
                     return controller;
@@ -81,13 +100,14 @@ define(['altair/facades/declare',
 
                 })});
 
-                this._controllers[controllerName] = dfd;
+                this._controllers[named] = dfd;
 
             }
 
             return dfd;
 
         }
+
 
 
     });

@@ -15,7 +15,7 @@ define(['altair/facades/declare',
         return declare([_Base], {
 
             name: 'controller-model',
-            _handles: ['controller'],
+            _handles: ['controller', 'app', 'module'],
             extend: function (Module) {
 
                 Module.extendOnce({
@@ -23,7 +23,7 @@ define(['altair/facades/declare',
                     _models: {},
                     model: function (named, options, config) {
 
-                        var _p = this.resolvePath(pathUtil.join(this.modelPath, named)),
+                        var _p = named.search(':') === -1 ?  this.resolvePath(pathUtil.join(this.modelPath, named)) : '',
                             _c = mixin({
                                 type: 'model',
                                 name: this.name.split('/')[0] + '/models/' + named
@@ -31,7 +31,20 @@ define(['altair/facades/declare',
 
                         //if it's a nexus name, pass it off
                         if (named.search(':') > 0) {
-                            return this.nexus(named, options, config);
+
+                            var parts  = named.split('/'),
+                                parent = parts.shift(),
+                                _p,
+                                name   = parts.pop();
+
+                            _p = this.nexus(parent);
+
+                            if (!_p) {
+                                throw new Error('Could not resolve ' + parent);
+                            }
+
+                            return _p.model(name, options, config);
+
                         }
 
                         if (this._models[named]) {

@@ -62,7 +62,7 @@ define(['altair/facades/declare',
          */
         generateAppConfig: function (controllerOptions) {
 
-            this.assertFail('generateAppConfig must be overridden by sublcass');
+            this.assertFail('generateAppConfig must be overridden by subclass');
 
         },
 

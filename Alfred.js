@@ -17,7 +17,10 @@ define(['altair/facades/declare',
         './nexusresolvers/Controllers',
         'require',
         './extensions/Model',
-        'altair/mixins/_AssertMixin'
+        './extensions/HttpResponseValues',
+        'altair/mixins/_AssertMixin',
+        'altair/plugins/node!path',
+        'altair/plugins/node!fs'
 ], function (declare,
              _,
              _HasSchemaMixin,
@@ -26,7 +29,10 @@ define(['altair/facades/declare',
              ControllersResolver,
              require,
              ModelExtension,
-             _AssertMixin) {
+             HttpResponseValuesExtension,
+             _AssertMixin,
+             pathUtil,
+             fs) {
 
     return declare([_HasSchemaMixin, _HasCommandersMixin, _HasServerStrategiesMixin, _AssertMixin], {
 
@@ -40,12 +46,13 @@ define(['altair/facades/declare',
 
             var _options            = options || this.options || {},
                 cartridge           = _options.extensionCartridge || this.nexus('cartridges/Extension'),
+                httpResponse        = _options.httpResponseExtension || new HttpResponseValuesExtension(cartridge),
                 model               = _options.modelExtension || new ModelExtension(cartridge);
 
             this._activeServers = [];
 
             //drop in new extensions
-            this.deferred = cartridge.addExtension(model).then(this.hitch(function () {
+            this.deferred = cartridge.addExtensions([model, httpResponse]).then(this.hitch(function () {
 
                 return this;
 
@@ -103,88 +110,28 @@ define(['altair/facades/declare',
          */
         startupServer: function (strategy, options) {
 
-            var app = options || {},
-                _router,
+            var _options = options || {},
+                app,
+                appPath,
                 server;
 
             this.assert(!!this._strategies, 'You must call refreshStrategies before starting up a titan:Alfred web server.');
             this.assert(!!this._strategies[strategy], 'You must pass a valid web server strategy to titan:Alfred');
 
             //pass controller foundry to the router
-            app.controllerFoundry = this._controllerFoundry;
+            _options.controllerFoundry = this._controllerFoundry;
+            _options.strategy = strategy;
 
-            //create a router
-            return this.forge(app.router || 'routers/Config', app).then(function (router) {
+            appPath = pathUtil.join(_options.dir, 'App');
 
-                _router = router;
+            //create a app
+            appPath = fs.existsSync(appPath + '.js') ? appPath : 'models/App';
 
-                //generate populated routes (see strategies/README.md)
-                return router.generateAppConfig();
+            return this.forge(appPath, _options, { type: 'app' }).then(function (app) {
 
-            }).then(this.hitch(function (_app) {
+                return app.execute();
 
-                var _paths = {};
-
-                //pass the newly generated routes our server strategy
-                app         = _app;
-                app.router  = _router;
-
-                //map the vendor
-                if (!app.vendor) {
-                    throw new Error('You must set a vendor in your site config.');
-                }
-
-                //include paths
-                _paths[app.vendor] = app.path;
-
-                require({
-                    paths: _paths
-                });
-
-                //if they passed a string, assume a foundry compatible class name
-                if (_.isString(strategy)) {
-
-                    //pass to the foundry for startup
-                    return this.forge(this._strategies[strategy], app);
-
-                }
-                //if a strategy was passed
-                else {
-
-                    //just start it up
-                    return strategy.startup(app);
-
-                }
-
-            })).then(this.hitch(function (server) {
-
-                return this.emit('will-execute-server', {
-                    server: server,
-                    app:    app,
-                    router: _router
-                });
-
-            })).then(this.hitch(function (e) {
-
-                server = e.get('server');
-
-                //execute the server
-                server.execute();
-
-                //add it to list of active servers
-                this._activeServers.push(server);
-
-                //let the world know we have executed
-                return this.emit('did-execute-server', {
-                    server: server,
-                    app:    app,
-                    router: _router
-                });
-
-            })).then(function (e) {
-                return e.get('server');
             });
-
 
 
         },

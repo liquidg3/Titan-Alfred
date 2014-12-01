@@ -193,6 +193,10 @@ define(['altair/facades/declare',
                 theme = layout ? new this.Theme(app.path, _route.layout, renderer, _route) : undefined,
                 view = _route.view && _.isString(_route.view) ? new this.View(app.path + _route.view, renderer) : _route.view,
                 dfd,
+                currentEvent = module.coerceEvent('noop', {
+                    request:    req,
+                    response:   res
+                }),
                 multiForm;
 
             //pretend that post always worked! yay!!
@@ -225,7 +229,7 @@ define(['altair/facades/declare',
             this.when(dfd).then(function () {
 
                 //emit the event, then pass it to the controller
-                return module.emit('did-receive-request', {
+                currentEvent = module.coerceEvent('did-receive-request', {
                     url:        url,
                     request:    req,
                     response:   res,
@@ -237,6 +241,9 @@ define(['altair/facades/declare',
                     callback:   _route.callback,
                     routes:     app.routes
                 });
+
+                return module.emit(currentEvent);
+
 
             }).then(function (e) {
 
@@ -274,6 +281,7 @@ define(['altair/facades/declare',
 
                 if (theme) {
 
+                    currentEvent = event;
                     return module.emit(event);
 
                 } else {
@@ -320,6 +328,7 @@ define(['altair/facades/declare',
 
                 if (theme) {
 
+                    currentEvent = event;
                     return module.emit(event);
 
                 } else {
@@ -331,7 +340,7 @@ define(['altair/facades/declare',
 
             }).then(function (e) {
 
-                return module.emit('will-send-response', {
+                currentEvent = module.coerceEvent('will-send-response', {
                     body:     e.get('body'),
                     url:      url,
                     request:  req,
@@ -343,6 +352,8 @@ define(['altair/facades/declare',
                     routes:   app.routes
                 });
 
+                return module.emit(currentEvent);
+
 
             }).then(function (e) {
 
@@ -352,7 +363,7 @@ define(['altair/facades/declare',
                     res.send(body);
                 }
 
-                return module.emit('did-send-response', {
+                currentEvent = module.coerceEvent('did-send-response', {
                     body:     body,
                     path:     url,
                     request:  req,
@@ -362,23 +373,43 @@ define(['altair/facades/declare',
                     routes:   app.routes
                 });
 
+                return module.emit(currentEvent);
 
             }).otherwise(this.hitch(function (err) {
 
-                this.onError(err, res);
+                this.onError(err, currentEvent);
 
             }));
 
 
         },
 
-        onError: function (err, response) {
+        onError: function (err, e) {
 
             this.log(err);
 
+            var response = e.get('response'),
+                theme    = e.get('theme');
+
             if (response) {
+
                 response.setStatus(500);
-                response.send(err.stack);
+
+                //if there is a theme, ouput the stack for now
+                if (theme) {
+
+                    response.send(err.stack);
+
+                }
+                //no theme, send back an object
+                else {
+
+                    response.send({
+                        error: err.message
+                    });
+
+                }
+
             }
 
 
