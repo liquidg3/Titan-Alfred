@@ -110,7 +110,7 @@ define(['altair/facades/declare',
          * @param options
          * @returns {*|Promise}
          */
-        attachControllers: function (vendor, routes, options) {
+        attachControllers: function (vendor, routes, options, config) {
 
             var list = [];
 
@@ -122,7 +122,7 @@ define(['altair/facades/declare',
                 list.push(d);
 
                 //attach the controller
-                this.attachControllerToRoute(vendor, route, options).then(function (route) {
+                this.attachControllerToRoute(vendor, route, options, config).then(function (route) {
 
                     d.resolve(routes);
 
@@ -150,7 +150,7 @@ define(['altair/facades/declare',
          * @param options
          * @returns {Deferred}
          */
-        attachControllerToRoute: function (vendor, route, options) {
+        attachControllerToRoute: function (vendor, route, options, config) {
 
             if (!route.action) {
                 throw new Error('Each route in your app.json needs an "action" that is the callback to invoked. Example: controllers/Admin::index');
@@ -175,7 +175,7 @@ define(['altair/facades/declare',
                 });
 
 
-            foundry.forgeForRoute(path, vendor, route, options).then(function (controller) {
+            foundry.forgeForRoute(path, vendor, route, options, config).then(function (controller) {
 
                 attach(controller);
 

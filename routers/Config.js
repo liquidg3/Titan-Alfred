@@ -7,7 +7,7 @@ define(['altair/facades/declare',
         return declare([_Base], {
 
 
-            generateAppConfig: function (controllerOptions) {
+            generateAppConfig: function (controllerOptions, controllerConfig) {
 
                 var path        = this._dir,
                     appConfig   = _.cloneDeep(this.options, true),
@@ -23,7 +23,7 @@ define(['altair/facades/declare',
                 });
 
                 return this.createDatabaseAdapters(appConfig.database ? appConfig.database.connections : false)
-                    .then(this.hitch('attachControllers', appConfig.vendor, appConfig.routes, controllerOptions))
+                    .then(this.hitch('attachControllers', appConfig.vendor, appConfig.routes, controllerOptions, controllerConfig))
                     .then(this.hitch('attachLayout', appConfig.routes))
                     .then(this.hitch('attachViews', appConfig.routes))
                     .then(this.hitch('attachMediaForPropertyTypes', media))

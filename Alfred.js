@@ -14,7 +14,6 @@ define(['altair/facades/declare',
         'apollo/_HasSchemaMixin',
         'altair/modules/commandcentral/mixins/_HasCommandersMixin',
         './mixins/_HasServerStrategiesMixin',
-        './nexusresolvers/Controllers',
         'require',
         './extensions/Model',
         './extensions/HttpResponseValues',
@@ -26,7 +25,6 @@ define(['altair/facades/declare',
              _HasSchemaMixin,
              _HasCommandersMixin,
              _HasServerStrategiesMixin,
-             ControllersResolver,
              require,
              ModelExtension,
              HttpResponseValuesExtension,
@@ -62,10 +60,6 @@ define(['altair/facades/declare',
                 return this.forge('./foundries/Controller');
 
             })).then(this.hitch(function (foundry) {
-
-                var resolver = new ControllersResolver(foundry);
-
-                this._nexus.addResolver(resolver);
 
                 this._controllerFoundry = foundry;
 
@@ -113,6 +107,7 @@ define(['altair/facades/declare',
             var _options = options || {},
                 app,
                 appPath,
+                name,
                 server;
 
             this.assert(!!this._strategies, 'You must call refreshStrategies before starting up a titan:Alfred web server.');
@@ -126,12 +121,14 @@ define(['altair/facades/declare',
 
             //create a app
             appPath = fs.existsSync(appPath + '.js') ? appPath : 'models/App';
+            name    = _options.vendor + ':*';
 
-            return this.forge(appPath, _options, { type: 'app' }).then(function (app) {
+            return this.forge(appPath, _options, { type: 'app', name: name, parent: null }).then(function (app) {
 
+                this._nexus.set(app.name, app);
                 return app.execute();
 
-            });
+            }.bind(this));
 
 
         },

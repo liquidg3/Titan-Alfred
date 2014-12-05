@@ -50,7 +50,7 @@ define(['altair/facades/declare',
                 alfred   = this.nexus('titan:Alfred');
 
 
-            return this.parent.emit('titan:Alfred::will-execute-app', {
+            return this.emit('titan:Alfred::will-execute-app', {
                 app: this,
                 options: _options
             }).then(function (e) {
@@ -64,9 +64,9 @@ define(['altair/facades/declare',
                 _router = router;
 
                 //generate populated routes (see strategies/README.md)
-                return router.generateAppConfig();
+                return router.generateAppConfig({}, { parent: this });
 
-            }).then(this.hitch(function (_app) {
+            }.bind(this)).then(this.hitch(function (_app) {
 
                 var _paths = {};
                 //pass the newly generated routes our server strategy
@@ -104,7 +104,7 @@ define(['altair/facades/declare',
 
                 this.server = server;
 
-                return this.parent.emit('titan:Alfred::will-execute-server', {
+                return this.emit('titan:Alfred::will-execute-server', {
                     server:     server,
                     app:        this,
                     options:    _options,
@@ -122,7 +122,7 @@ define(['altair/facades/declare',
                 alfred._activeServers.push(server);
 
                 //let the world know we have executed
-                return this.parent.emit('titan:Alfred::did-execute-server', {
+                return this.emit('titan:Alfred::did-execute-server', {
                     server: server,
                     app:    this,
                     options:_options,
@@ -131,7 +131,7 @@ define(['altair/facades/declare',
 
             })).then(function (e) {
 
-                return this.parent.emit('titan:Alfred::did-execute-app', {
+                return this.emit('titan:Alfred::did-execute-app', {
                     server: e.get('server'),
                     app:    this,
                     options:_options,

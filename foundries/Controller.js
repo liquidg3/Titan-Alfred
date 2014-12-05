@@ -43,21 +43,29 @@ define(['altair/facades/declare',
             return this._namespaces[named];
         },
 
-        forgeForRoute: function (path, vendor, route, options) {
+        forgeForRoute: function (path, vendor, route, options, config) {
 
             var callbackParts   = route.action.split('::'),
                 controllerName  = this.nameForRoute(vendor, route),
-                controller      = controllerName == callbackParts[0] ? null : pathUtil.join(path, callbackParts[0]);
+                controller      = controllerName == callbackParts[0] ? null : pathUtil.join(path, callbackParts[0]),
+                _config         = config || {};
+
+            _config.path = controller;
+            _config.startup = false;
 
 
-            return this.forgeController(controllerName, options, controller, false)
+            return this.forgeController(controllerName, options, _config)
 
         },
 
-        forgeController: function (named, options, path, startup) {
+        forgeController: function (named, options, config) {
 
             var dfd,
                 sitePath,
+                _config         = config || {},
+                path            = _config.path,
+                startup         = _.has(_config, 'startup') ? _config.startup : true,
+                parent          = _config.parent,
                 namespace       = named.split('/').shift();
 
             path = path || this.parent.resolvePath(named);
@@ -82,7 +90,7 @@ define(['altair/facades/declare',
 
             } else {
 
-                dfd =  this.forge(path || named, options, { type: 'controller', startup: startup, parent: null, name: named, foundry: this.hitch(function (Class, options, config) {
+                dfd =  this.forge(path || named, options, { type: 'controller', startup: startup, parent: parent, name: named, foundry: this.hitch(function (Class, options, config) {
 
                     //override paths for things to be off the sitePath (vs relative to the controller)
                     Class.extendOnce({

@@ -388,8 +388,8 @@ define(['altair/facades/declare',
 
             this.log(err);
 
-            var response = e.get('response'),
-                theme    = e.get('theme');
+            var response = e && e.get('response'),
+                theme    = e && e.get('theme');
 
             if (response) {
 
