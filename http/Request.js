@@ -12,6 +12,17 @@ define(['altair/facades/declare', 'lodash'], function (declare, _) {
 
             var v = _.has(this._overrides, name) ? this._overrides[name] : this._req.param(name);
 
+            //check post
+            if (_.isUndefined(v)) {
+                v = this._req.body[v];
+            }
+
+            //get against raw request
+            if (_.isUndefined(v)) {
+                v = this._req.get(name);
+            }
+
+            //fallback to default
             if (_.isUndefined(v)) {
                 v = defaultValue;
             }
@@ -19,10 +30,36 @@ define(['altair/facades/declare', 'lodash'], function (declare, _) {
             return v;
         },
 
+        /**
+         * Will return something like: localhost:8080
+         *
+         * @returns {*}
+         */
+        host: function () {
+            return this._req.get('host');
+        },
+
+        /**
+         * A little more useful than host(): http://localhost:8080
+         *
+         * @returns {string}
+         */
+        hostWithProtocol: function () {
+            return this._req.protocol + '://' + this._req.get('host');
+        },
+
+        /**
+         * All POSTed parameters
+         * @returns {body}
+         */
         post: function () {
             return this._req.body;
         },
 
+        /**
+         * The query string of the requested url
+         * @returns {*}
+         */
         query: function () {
             return this._req.query;
         },

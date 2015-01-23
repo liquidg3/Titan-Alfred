@@ -198,7 +198,6 @@ define(['altair/facades/declare',
          */
         startupControllers: function (appConfig) {
 
-
             var beenStarted = {},
                 l = _.map(appConfig.routes, function (route) {
 
@@ -383,6 +382,11 @@ define(['altair/facades/declare',
                         path + 'views/layouts/' + name + '.*'
                     ];
 
+                //skip if layout is false
+                if (route.layout === false) {
+                    return;
+                }
+
                 list.push(glob(candidates).then(this.hitch(function (matches) {
 
                     //attach layout
@@ -424,6 +428,12 @@ define(['altair/facades/declare',
                         path + 'views/' + name + '.*',
                         path + 'views/' + name + '/' + action + '.*'
                     ];
+
+                //if there is a view specifically for this route
+                if (route.view) {
+                    route.view = this.nexus('Altair').resolvePath(route.view).replace(path, '');
+                    return;
+                }
 
                 list.push(glob(candidates).then(this.hitch(function (matches) {
 

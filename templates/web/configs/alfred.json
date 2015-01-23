@@ -7,14 +7,15 @@
             "domain": "%(domain)s",
             "media":  {
                 "css":  [
-                    "//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css"
+                    "//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css"
                 ],
                 "autoCompileLess": false,
                 "less": [
                     "/public/less/index.less"
                 ],
                 "js":   [
-                    "//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js",
+                    "//code.jquery.com/jquery-1.11.1.min.js",
+                    "//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js",
                     "/public/js/global.js"
                 ]
             },

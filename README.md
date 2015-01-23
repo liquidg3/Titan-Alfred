@@ -114,7 +114,130 @@ $ cd /path/to/site
 $ altair
 ```
 
-Is all you need to get started!
+## Themes
+Alfred has a construct called a `Theme`. Themes hold the `layout.ejs` and all `media` such as javascript and stylesheets.
+You can check out the theme on a request by accesing the `e.get('theme')` in any request.
 
-## Troubleshooting
-If you do not see your files getting included properly ( css, js, etc... ) restart the alfred server
+Anything you set on a theme's context will be available in it's layout file.
+
+```js
+onDidReceiveRequest: function (e) {
+
+    //i'm getting the theme for the request
+    var theme = e.get('theme');
+
+    if (theme) {
+        //will make `errors` and `messages` available in the theme's layout
+        theme.set('errors', false)
+             .set('messages', false);
+    }
+
+},
+```
+
+### Layout Files
+If your in `controllers/Index.js` the layout that will be loaded is `views/layout.ejs`. All other layout files
+are pulled from the `views/layouts` directory. The name of the file matches the name of the controller.
+
+`controllers/Admin` -> `views/layouts/admin.ejs`
+`controllers/User` -> `views/layouts/user.ejs`
+`controllers/Manage` -> `views/layouts/manager.ejs`
+
+### Disabling a Theme (rendering with no layout template)
+If you don't want any of the theme functionality (such as its layout file, javascript, or css) you can disable
+the theme for a particular route by setting `layout` to `false`. This is a good thing to do if your endpoint returns
+json and you do not need a theme and its media.
+
+alfred.json example:
+```json
+"options": {
+    "routes": {
+        "post /song": {
+            "action": "controllers/Index::submitSongSuggestion",
+            "layout": false
+        }
+    }
+}
+```
+Now a POST request to `/song` will recieve whatever the `submitSongSuggestion` callback returns and nothing more.
+
+## Redirecting a client
+```js
+
+/**
+ * /dashboard
+ *
+ * User's dashboard page.
+ *
+ * @param e
+ * @returns {string}
+ */
+dashboard: function (e) {
+
+    var req = e.get('request');
+    
+    //redirect with default status (302)
+    req.redirect('/login');
+    
+    //force status 301
+    req.redirect(301, '/login');
+
+
+},
+```
+
+## Cookies
+Alfred uses [Cookies](https://www.npmjs.com/package/cookies) to add cookie support.
+To start, add the following to your `package.json`:
+
+```json
+"dependencies": {
+    "cookies": ">=0.5.x"
+},
+```
+
+Mixin `_HasCookiesMixin` into your `App.js`
+
+```js
+define(['altair/facades/declare',
+        'titan/modules/alfred/models/App',
+        'titan/modules/alfred/mixins/_HasCookiesMixin'
+], function (declare,
+             App,
+             _HasCookiesMixin) {
+
+    return declare([App, _HasCookiesMixin], {
+
+
+    });
+
+});
+```
+Now in every callback you can get cookies as follows:
+```js
+dashboard: function (e) {
+
+    var cookies = e.get('cookies');
+    
+    //see more documentation here: https://www.npmjs.com/package/cookies
+
+},
+```
+
+## Skipping callback
+If you want to render a view directly and not even bother implementing a callback in your controller, you can use the `noop` route handler.
+Configure your route like this:
+
+```json
+"options": {
+    "routes": {
+        "/my-page": {
+            "action": "controllers/Index::noop",
+            "view":   "./views/index/my-page.ejs"
+        }
+    }
+}
+
+```
+All you have to do is make sure that your view exists. All view paths are resolved relative to the root of your site.
+

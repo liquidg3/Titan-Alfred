@@ -15,6 +15,11 @@ define(['altair/facades/declare',
 
             return this.inherited(arguments);
 
+        },
+
+        dashboard: function (e) {
+
+            return e.get('view').render();
         }
 
     });

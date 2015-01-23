@@ -17,6 +17,7 @@ define(['altair/facades/declare',
         'require',
         './extensions/Model',
         './extensions/HttpResponseValues',
+        './extensions/Noop',
         'altair/mixins/_AssertMixin',
         'altair/plugins/node!path',
         'altair/plugins/node!fs'
@@ -28,6 +29,7 @@ define(['altair/facades/declare',
              require,
              ModelExtension,
              HttpResponseValuesExtension,
+             NoopExtension,
              _AssertMixin,
              pathUtil,
              fs) {
@@ -45,12 +47,13 @@ define(['altair/facades/declare',
             var _options            = options || this.options || {},
                 cartridge           = _options.extensionCartridge || this.nexus('cartridges/Extension'),
                 httpResponse        = _options.httpResponseExtension || new HttpResponseValuesExtension(cartridge),
-                model               = _options.modelExtension || new ModelExtension(cartridge);
+                model               = _options.modelExtension || new ModelExtension(cartridge),
+                noop                = _options.noopExtension || new NoopExtension(cartridge);
 
             this._activeServers = [];
 
             //drop in new extensions
-            this.deferred = cartridge.addExtensions([model, httpResponse]).then(this.hitch(function () {
+            this.deferred = cartridge.addExtensions([model, httpResponse, noop]).then(this.hitch(function () {
 
                 return this;
 
