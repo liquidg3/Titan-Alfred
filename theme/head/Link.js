@@ -55,7 +55,7 @@ define(['altair/facades/declare',
 
                                 mkdirp(pathUtil.dirname(path), function (err) {
 
-                                    fs.writeFile(path, results, function (err) {
+                                    fs.writeFile(path, results.css ? results.css : results, function (err) {
 
                                         if(err) {
                                             d.reject(err);
