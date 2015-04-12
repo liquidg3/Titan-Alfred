@@ -436,7 +436,7 @@ define(['altair/facades/declare',
                         this.deferred.reject(err);
                     }));
 
-                    this._client.listen(this.get('port'));
+                    this._client.listen(this.get('port'), this.get('domain'));
                 }
 
                 if (this.ssl) {
@@ -447,7 +447,7 @@ define(['altair/facades/declare',
                         this.deferred.reject(err);
                     }));
 
-                    this._sslClient.listen(this.get('sslPort'));
+                    this._sslClient.listen(this.get('sslPort'), this.get('domain'));
 
                 }
 
