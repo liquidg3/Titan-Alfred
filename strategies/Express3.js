@@ -424,12 +424,11 @@ define(['altair/facades/declare',
 
             this.deferred = new this.Deferred();
 
-            this.log('starting alfred on port ' + this.get('port'));
-
             try {
 
                 if (this.get('port')) {
 
+                    this.log('starting alfred on port ' + this.get('port'));
                     this._client = http.createServer(this._app);
                     this._client.on('error', hitch(this, function (err) {
                         this.onError(err);
@@ -441,6 +440,7 @@ define(['altair/facades/declare',
 
                 if (this.ssl) {
 
+                    this.log('starting ssl alfred on port ' + this.get('sslPort'));
                     this._sslClient = https.createServer(this.ssl, this._app);
                     this._sslClient.on('error', hitch(this, function (err) {
                         this.onError(err);
