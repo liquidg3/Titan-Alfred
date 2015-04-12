@@ -22,6 +22,14 @@
                 "description": "If no port set, SSL is ignored."
             }
         },
+        "domain":         {
+            "type":    "string",
+            "options": {
+                "label":       "Domain",
+                "description": "Where are you hosted",
+                "default": "localhost"
+            }
+        },
         "privateKeyPath":  {
             "type":    "path",
             "options": {
