@@ -10,7 +10,7 @@ define(['altair/facades/declare', 'lodash'], function (declare, _) {
 
         get: function (name, defaultValue) {
 
-            var v = _.has(this._overrides, name) ? this._overrides[name] : this._req.param(name);
+            var v = _.has(this._overrides, name) ? this._overrides[name] : this._req.query[name];
 
             //check post
             if (_.isUndefined(v)) {

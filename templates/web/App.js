@@ -41,6 +41,23 @@ define(['altair/facades/declare',
          * @param e {altair/events/Event}
          */
         onDidReceiveRequest:    function (e) {
+
+            //i'm getting the theme for the request
+            var theme = e.get('theme');
+
+            //if layout === false for this route, there will not be a theme
+            if (theme) {
+
+                theme.set('errors', false)
+                    .set('messages', false);
+
+                //e.set('foo', 'bar'); //setting anything to an event will make that data available for the entire request
+
+
+            }
+
+
+
             this.inherited(arguments);
         },
 

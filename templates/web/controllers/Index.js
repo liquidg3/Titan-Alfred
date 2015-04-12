@@ -35,16 +35,8 @@ define(['altair/facades/declare',
          */
         onDidReceiveRequest: function (e) {
 
-            //i'm getting the theme for the request
-            var theme = e.get('theme');
-
-            theme.set('errors', false)
-                 .set('messages', false);
-
-            e.set('foo', 'bar'); //setting anything to an event will make that data available for the entire request
-
-            //drop in arbitrary js
-//            theme.headScript().append('/public/js/test.js');
+            //drop in arbitrary js for all actions in this controller
+            //theme.headScript().append('/public/js/test.js');
 
         },
 

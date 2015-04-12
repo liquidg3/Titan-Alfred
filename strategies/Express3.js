@@ -428,13 +428,16 @@ define(['altair/facades/declare',
 
             try {
 
-                this._client = http.createServer(this._app);
-                this._client.on('error', hitch(this, function (err) {
-                    this.onError(err);
-                    this.deferred.reject(err);
-                }));
+                if (this.get('port')) {
 
-                this._client.listen(this.get('port'));
+                    this._client = http.createServer(this._app);
+                    this._client.on('error', hitch(this, function (err) {
+                        this.onError(err);
+                        this.deferred.reject(err);
+                    }));
+
+                    this._client.listen(this.get('port'));
+                }
 
                 if (this.ssl) {
 

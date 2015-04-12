@@ -68,7 +68,12 @@ define(['altair/facades/declare',
                 parent          = _config.parent,
                 namespace       = named.split('/').shift();
 
-            path = path || this.parent.resolvePath(named);
+            if (!path && named.search(':') === -1) {
+                path = this.nexus('Altair').resolvePath(named);
+            } else {
+
+            }
+
 
             //are we starting up the controller?
             if (_.isUndefined(startup)) {
@@ -76,7 +81,7 @@ define(['altair/facades/declare',
             }
 
             //build sitePath
-            sitePath = pathUtil.resolve(pathUtil.join(path, '..', '..'));
+            sitePath = this.nexus('Altair').resolvePath('.')
 
             //track all the namespaces (1 per site)
             if (!this._namespaces[namespace]) {
@@ -90,7 +95,9 @@ define(['altair/facades/declare',
 
             } else {
 
-                dfd =  this.forge(path || named, options, { type: 'controller', startup: startup, parent: parent, name: named, foundry: this.hitch(function (Class, options, config) {
+                var fullname = parent.name.split('/')[0] + '/' + named;
+
+                dfd =  this.forge(path || named, options, { type: 'controller', startup: startup, parent: parent, name: fullname, foundry: this.hitch(function (Class, options, config) {
 
                     //override paths for things to be off the sitePath (vs relative to the controller)
                     Class.extendOnce({

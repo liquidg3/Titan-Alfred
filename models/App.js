@@ -49,7 +49,6 @@ define(['altair/facades/declare',
                 strategy = _options.strategy,
                 alfred   = this.nexus('titan:Alfred');
 
-
             return this.emit('titan:Alfred::will-execute-app', {
                 app: this,
                 options: _options

@@ -21,7 +21,12 @@ define(['altair/facades/declare',
                 Module.extendOnce({
                     getHttpResponseValues: function (event, options, config) {
 
-                        return this.getValues({ '*': { request: event.get('request') }}, { methods: ['toHttpResponseValue', 'toDatabaseValue', 'toJsValue']});
+                        var _options = mixin({
+                            '*': { request: event.get('request') }
+                        }, options || {}),
+                            _config = mixin({ methods: ['toHttpResponseValue', 'toDatabaseValue', 'toJsValue']}, config || {});
+
+                        return this.getValues(_options, _config);
 
                     }
                 });

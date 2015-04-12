@@ -38,7 +38,7 @@ From the root directory you selected to configure your routes, you will need a f
         - less
             - guess what goes here? ... you guessed it, all of your less files go here!
     - views
-        - layout.ejs ( Example Below )
+        - layout.ejs
         - admin
             - dashboard.ejs
         - index
@@ -47,7 +47,6 @@ From the root directory you selected to configure your routes, you will need a f
         - layouts
             - admin.ejs ( view for admin layouts )
             - user.ejs
-            - front.ejs
 ```
 
 
@@ -57,6 +56,21 @@ Once your site has been forged, you can configure alfred in 1 of 2 places.
 `/path/to/site/configs/alfred.json` and `/path/to/site/configs/alfred-dev.json`
 
 The `alfred-dev.json` config will override anything in `alfred.json`.
+
+```json
+{
+    "routes": {
+        "/about": {
+            "callback": "controllers/Index::about",
+            "layoutContext": {
+                "title":     "About Us",
+                "bodyClass": "about-us"
+            }
+        }   
+    }
+}
+
+```
 
 
 ## Example layout.ejs
@@ -224,7 +238,7 @@ dashboard: function (e) {
 },
 ```
 
-## Skipping callback
+## Drop the controller action
 If you want to render a view directly and not even bother implementing a callback in your controller, you can use the `noop` route handler.
 Configure your route like this:
 
@@ -241,3 +255,95 @@ Configure your route like this:
 ```
 All you have to do is make sure that your view exists. All view paths are resolved relative to the root of your site.
 
+## Custom form attributes
+Drop your attributes into `form.attribs` of your `property`.
+
+```json
+{
+    "properties": {
+        "totalChairs": {
+            "type": "integer",
+            "form": {
+                "attribs": {
+                    "ng-model": "prefs.totalChairs"
+                }
+            },
+            "options": {
+                "label": "Total Chairs",
+                "description": "This will determine how many appointments can be booked at once.",
+                "default": 2
+            }
+        },
+        "hoop": {
+            "type": "object",
+            "form": {
+                "template": "form/properties/hoop.ejs"
+            },
+            "options": {
+                "label": "Hours of Operation"
+            }
+        }
+    }
+}
+## Create controller Programatically
+I do this whenever I want to create a `controllers/Socket`. Makes for a much cleaner project.
+
+### Step 1. Create instance of controller in app
+This would be in you `App.js`.
+
+```js
+define(['altair/facades/declare',
+        'titan/modules/alfred/models/App',
+        'lodash'
+], function (declare,
+             App,
+             _) {
+
+    return declare([App], {
+
+        _socketController: null,
+        
+        /**
+         * Called when the app is being started up.
+         *
+         * @param options
+         * @returns {*}
+         */
+        startup: function (options) {
+
+            //install
+            this.on('liquidfire:Shopify::install').then(this.hitch('onInstallShop'));
+            this.on('liquidfire:Shopify::update').then(this.hitch('onUpdateShop'));
+
+            this._socketController = options.controllerFoundry.forgeController('controllers/Socket', {}, { parent: this });
+
+            return this.inherited(arguments);
+        }
+
+    });
+
+});
+
+
+```
+##SSL
+Setting up SSL is easy peasy. Just configure your `configs/alfred.json` or `configs/alfred-dev.json` (or whatever environment you are using).
+Note that by setting `port` to `false` we ensure that a non-secure version the site is _not_ started.
+```json
+
+{
+
+    "site": {
+        "options": {
+            "sslPort": 431,
+            "port": false
+            "privateKeyPath": "./certs/dev/server.key",
+            "certificatePath": "./certs/dev/server.crt"
+        
+        }
+    }
+
+}
+
+
+```
