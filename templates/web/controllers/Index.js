@@ -36,7 +36,8 @@ define(['altair/facades/declare',
         onDidReceiveRequest: function (e) {
 
             //drop in arbitrary js for all actions in this controller
-            //theme.headScript().append('/public/js/test.js');
+            //var theme = e.get('theme');
+            //if (theme) { theme.headScript().append('/public/js/test.js'); }
 
         },
 

@@ -48,6 +48,14 @@
                 "label": "Certificate authority",
                 "many":  true
             }
+        },
+        "listenOnStart":              {
+            "type":    "boolean",
+            "options": {
+                "label": "Listen on start",
+                "description": "If you need to run additional setup on the server before it begins listening you can set this to false.",
+                "default":  true
+            }
         }
     }
 }

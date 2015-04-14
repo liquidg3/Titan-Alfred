@@ -347,3 +347,35 @@ Note that by setting `port` to `false` we ensure that a non-secure version the s
 
 
 ```
+## Custom JS/CSS/Less
+If you want to drop in custom css/js/less, you can do it in your controller like so:
+
+```js
+
+{
+    startup: function (options) {
+
+        //listen to all requests
+        this.on('titan:Alfred::did-receive-request', {
+            'controller': this
+        }).then(this.hitch('onDidReceiveRequest'));
+
+        //pass call to parent
+        return this.inherited(arguments);
+
+    },
+
+    onDidReceiveRequest: function (e) {
+    
+        var theme = e.get('theme');
+
+        //drop in arbitrary js for all actions in this controller
+        theme.headScript().append('/public/js/test.js');
+        theme.headLink().append('/public/less/test.less');
+
+    }
+
+   
+}
+
+'''

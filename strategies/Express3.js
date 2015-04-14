@@ -19,8 +19,8 @@ define(['altair/facades/declare',
     return declare([_Base], {
 
         _app:      null,
-        _client:   null,
-        _sslClient:   null,
+        _server:   null,
+        _sslServer:   null,
         appConfig: null,
         ssl:       null, //the ssl options to pass to https.createServer
         Theme:     Theme,
@@ -429,25 +429,29 @@ define(['altair/facades/declare',
                 if (this.get('port')) {
 
                     this.log('starting alfred on port ' + this.get('port'));
-                    this._client = http.createServer(this._app);
-                    this._client.on('error', hitch(this, function (err) {
+                    this._server = http.createServer(this._app);
+                    this._server.on('error', hitch(this, function (err) {
                         this.onError(err);
                         this.deferred.reject(err);
                     }));
 
-                    this._client.listen(this.get('port'), this.get('domain'));
+                    if (this.get('listenOnStart')) {
+                        this._server.listen(this.get('port'), this.get('domain'));
+                    }
                 }
 
                 if (this.ssl) {
 
                     this.log('starting ssl alfred on port ' + this.get('sslPort'));
-                    this._sslClient = https.createServer(this.ssl, this._app);
-                    this._sslClient.on('error', hitch(this, function (err) {
+                    this._sslServer = https.createServer(this.ssl, this._app);
+                    this._sslServer.on('error', hitch(this, function (err) {
                         this.onError(err);
                         this.deferred.reject(err);
                     }));
 
-                    this._sslClient.listen(this.get('sslPort'), this.get('domain'));
+                    if (this.get('listenOnStart')) {
+                        this._sslServer.listen(this.get('sslPort'), this.get('domain'));
+                    }
 
                 }
 
@@ -466,7 +470,7 @@ define(['altair/facades/declare',
          * @returns {httpServer}
          */
         http: function () {
-            return this._client;
+            return this._server;
         },
 
         /**
@@ -475,7 +479,7 @@ define(['altair/facades/declare',
          * @returns {null}
          */
         https: function () {
-            return this._sslClient;
+            return this._sslServer;
         },
 
         /**
@@ -487,10 +491,10 @@ define(['altair/facades/declare',
 
             this.log('tearing down server');
 
-            var all = [this.promise(this._client, 'close')];
+            var all = [this.promise(this._server, 'close')];
 
-            if (this._sslClient) {
-                all.push(this.promise(this._sslClient, 'close'));
+            if (this._sslServer) {
+                all.push(this.promise(this._sslServer, 'close'));
             }
 
             return this.all(all);
