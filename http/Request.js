@@ -22,6 +22,11 @@ define(['altair/facades/declare', 'lodash'], function (declare, _) {
                 v = this._req.get(name);
             }
 
+            //check against params
+            if (_.isUndefined(v)) {
+                v = this._req.params[name];
+            }
+
             //fallback to default
             if (_.isUndefined(v)) {
                 v = defaultValue;

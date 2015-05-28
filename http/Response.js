@@ -30,6 +30,18 @@ define(['altair/facades/declare', 'lodash'], function (declare, _) {
 
         beenSent: function () {
             return this._res.headersSent;
+        },
+
+        set: function (k, v) {
+            return this._res.set(k,v);
+        },
+
+        get: function (k) {
+            return this._res.get(k);
+        },
+
+        header: function (k, v) {
+            this._res.header(k, v)
         }
 
 
