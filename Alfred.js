@@ -60,7 +60,7 @@ define(['altair/facades/declare',
             })).then(this.hitch(function () {
 
                 //create our controller foundry
-                return this.forge('./foundries/Controller');
+                return this.forge('foundries/Controller');
 
             })).then(this.hitch(function (foundry) {
 

@@ -36,7 +36,7 @@ define(['altair/facades/declare',
                 //if there is no controller foundry, lets create one
                 if (!_options.controllerFoundry) {
 
-                    this.deferred = this.forge('../foundries/Controller').then(this.hitch(function (foundry) {
+                    this.deferred = this.parent.forge('foundries/Controller').then(this.hitch(function (foundry) {
                         this._controllerFoundry = foundry;
                         return this;
                     }));
