@@ -64,7 +64,7 @@ define(['altair/facades/declare',
                         setTimeout(this.hitch(function () {
 
                             if (server) {
-                                server.teardown().then(recycle).otherwise(this.hitch('log'));
+                                server.teardown().then(recycle).otherwise(this.hitch('err'));
                             } else {
                                 recycle();
                             }
@@ -109,99 +109,16 @@ define(['altair/facades/declare',
              */
             site: function (values) {
 
-                this.writeLine('forging new website...');
 
-                var dfd = new this.Deferred(),
-                    from = this.parent.resolvePath('templates/web'),
-                    moduleConfig,
-                    devModuleConfig;
+                return this.parent.forge('foundries/App').then(function (app) {
 
-                values.name = 'webapp';
+                    return app.forge(values);
 
-                this.writeLine('forging new altair app.');
+                }).step(function (msg) {
 
-                //first forge an app
-                return this.forge('altair:TheForge/models/App').then(function (app) {
-
-                    return app.forge(values.destination, values).step(function (step) {
-                        this.writeLine(step.message, step.type);
-                    }.bind(this));
-
-                }.bind(this)).then(function (results) {
-
-                    this.writeLine('app forged, configuring modules.json');
-
-                    //get the database config so we can modify it
-                    moduleConfig = _.where(_.flatten(results), function (obj) {
-                        return obj.file === 'modules.json';
-                    })[0];
-
-                    devModuleConfig = _.where(_.flatten(results), function (obj) {
-                        return obj.file === 'modules-dev.json';
-                    })[0];
-
-                    return this.all({
-                        default:    this.parseConfig(moduleConfig.to),
-                        dev:        this.parseConfig(devModuleConfig.to)
-                    });
-
-                }.bind(this)).then(function (configs) {
-
-                    var all = [];
-
-
-                    if (!configs['default']['titan:Alfred']) {
-
-                        this.writeLine('no titan:Alfred block exists, creating now.');
-
-                        configs['default']['titan:Alfred'] = {
-                            '$ref': './alfred.json'
-                        };
-
-                        all.push(this.promise(fs, 'writeFile', moduleConfig.to, JSON.stringify(configs.default, null, 4)));
-
-
-                    } else {
-
-                        this.writeLine('titan:Alfred block already exists, skipping config.');
-                    }
-
-                    if (!configs.dev['titan:Alfred']) {
-
-                        this.writeLine('no titan:Alfred dev block exists, creating now.');
-
-                        configs.dev['titan:Alfred'] = {
-                            '$ref': './alfred-dev.json'
-                        };
-
-                        all.push(this.promise(fs, 'writeFile', devModuleConfig.to, JSON.stringify(configs.dev, null, 4)));
-
-
-                    } else {
-
-                        this.writeLine('titan:Alfred dev block already exists, skipping config.');
-                    }
-
-
-                    return this.all(all);
-
+                    this.writeLine(msg);
 
                 }.bind(this)).then(function () {
-
-                    this.writeLine('app forge and configuration complete, forging site');
-
-                    return this.parent.forge('altair:TheForge/models/Copier');
-
-                }.bind(this)).then(function (copier) {
-
-                    return copier.execute(from, values.destination, values).step(function (step) {
-
-                        this.writeLine(step.message, step.type || '');
-
-                    }.bind(this));
-
-
-                }.bind(this)).then(function (results) {
 
                     this.writeLine('site created at: ' + values.destination);
                     this.writeLine('run the following commands:', 'h1');
@@ -210,9 +127,9 @@ define(['altair/facades/declare',
                     this.writeLine('| $altair');
                     this.writeLine('-----------------------');
 
+
                 }.bind(this));
 
-                return dfd;
 
             }
 

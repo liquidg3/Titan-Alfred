@@ -1,5 +1,5 @@
 define(['altair/facades/declare',
-    'titan/modules/alfred/models/App'
+        'titan/modules/alfred/models/App'
 ], function (declare,
              App) {
 
