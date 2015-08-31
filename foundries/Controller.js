@@ -1,7 +1,7 @@
 define(['altair/facades/declare',
-        'altair/plugins/node!path',
-        'altair/mixins/_DeferredMixin',
-        'lodash'
+    'altair/plugins/node!path',
+    'altair/mixins/_DeferredMixin',
+    'lodash'
 ], function (declare,
              pathUtil,
              _DeferredMixin,
@@ -95,7 +95,7 @@ define(['altair/facades/declare',
 
             } else {
 
-                var fullname = parent.name.split('/')[0] + '/' + named;
+                var fullname = named.search(':') > -1 ? named : parent.name.split('/')[0] + '/' + named;
 
                 dfd =  this.forge(path || named, options, { type: 'controller', startup: startup, parent: parent, name: fullname, foundry: this.hitch(function (Class, options, config) {
 
