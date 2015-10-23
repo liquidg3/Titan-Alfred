@@ -14,7 +14,7 @@ define(['altair/facades/declare', 'lodash'], function (declare, _) {
 
             //check post
             if (_.isUndefined(v)) {
-                v = this._req.body[v];
+                v = this._req.body[name];
             }
 
             //get against raw request
