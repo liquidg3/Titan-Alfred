@@ -454,7 +454,29 @@ define(['altair/facades/declare',
             });
 
 
+        },
+
+        attachErrorView: function (config) {
+
+            var errorView = config.errorView;
+
+            if (!errorView) {
+                return null;
+            } else {
+
+                var path        = this.nexus('Altair').resolvePath(errorView),
+                    contents    = fs.readFileSync(path);
+
+                config.errorView = contents.toString();
+
+
+            }
+
+
         }
+
+
+
 
 
 

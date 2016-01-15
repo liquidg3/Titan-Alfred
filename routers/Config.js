@@ -28,6 +28,7 @@ define(['altair/facades/declare',
                     .then(this.hitch('attachViews', appConfig.routes))
                     .then(this.hitch('attachMediaForPropertyTypes', media))
                     .then(this.hitch('attachMedia', appConfig.routes, media))
+                    .then(this.hitch('attachErrorView', appConfig))
                     .then(this.hitch('startupControllers', appConfig))
                     .then(function () {
 

@@ -1,6 +1,6 @@
 {
     "name":               "titan:Alfred",
-    "version":            "0.3.4",
+    "version":            "0.4.0",
     "altairDependencies": {
         "altair:CommandCentral": ">=0.0.x",
         "liquidfire:Onyx":       ">=0.1.x",
@@ -23,7 +23,8 @@
         "will-render-theme":          "I have all the page content and I'm about to drop it into the theme (if the requestent content type is text/html)",
         "did-render-theme":           "Everything is rendered and about to be handed to the response.",
         "will-send-response":         "I'm about to send back a response",
-        "did-send-response":          "I have sent a response to the end user"
+        "did-send-response":          "I have sent a response to the end user",
+        "did-error":                  "Some error occurred along the way, you can return something useful here."
     },
     "description":        "A super simple, super thin module designed to provide a simple MVC architecture for web apps in Altair using express."
 }

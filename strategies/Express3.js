@@ -391,26 +391,50 @@ define(['altair/facades/declare',
             var response = e && e.get('response'),
                 theme    = e && e.get('theme');
 
-            if (response) {
-
-                response.setStatus(500);
-
-                //if there is a theme, ouput the stack for now
-                if (theme) {
-
-                    response.send(err.stack);
-
-                }
-                //no theme, send back an object
-                else {
-
-                    response.send({
-                        error: err.message
-                    });
-
-                }
-
+            if (!this.appConfig.errorView) {
+                this.warn('No errorView set in alfred.json. Drop in the path an .html file you want rendered on any error.');
             }
+
+
+            if (!this.appConfig.errorJsonMessage) {
+                this.warn('No errorJson set in alfred.json. Drop in some string you want people to see when an unknown error occurred.');
+            }
+
+            return this.parent.emit('did-error', {
+                error:      err,
+                event:      e,
+                response:   response,
+                theme:      theme,
+                body:       this.appConfig.errorView,
+                jsonBody:   this.appConfig.errorJsonMessage
+            }).then(function (e) {
+
+                if (response) {
+
+                    response.setStatus(500);
+
+                    //if there is a theme, ouput the stack for now
+                    if (theme) {
+
+                        response.send(e.get('body') || err.stack);
+
+                    }
+                    //no theme, send back an object
+                    else {
+
+                        response.send({
+                            error: e.get('jsonBody') || err.message
+                        });
+
+                    }
+
+                }
+
+
+
+
+            });
+
 
 
         },
