@@ -7,10 +7,10 @@
         "liquidfire:Apollo":     ">=0.1.x"
     },
     "dependencies":       {
-        "express":     ">=3.x",
-        "less":        ">=1.x",
+        "express":      "~4.13.0",
+        "less":        "~2.5.3",
         "multiparty":  "3.2.5",
-        "body-parser": ">=1.0.x"
+        "body-parser": "~1.14.0"
     },
     "events":             {
         "register-server-strategies": "Tell me all about the strategies you have.",
