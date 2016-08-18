@@ -10,17 +10,18 @@
  *
  */
 define(['altair/facades/declare',
-        'lodash',
-        'apollo/_HasSchemaMixin',
-        'altair/modules/commandcentral/mixins/_HasCommandersMixin',
-        './mixins/_HasServerStrategiesMixin',
-        'require',
-        './extensions/Model',
-        './extensions/HttpResponseValues',
-        './extensions/Noop',
-        'altair/mixins/_AssertMixin',
-        'altair/plugins/node!path',
-        'altair/plugins/node!fs'
+    'lodash',
+    'apollo/_HasSchemaMixin',
+    'altair/modules/commandcentral/mixins/_HasCommandersMixin',
+    './mixins/_HasServerStrategiesMixin',
+    'require',
+    './extensions/Model',
+    './extensions/HttpResponseValues',
+    './extensions/Noop',
+    './extensions/Service',
+    'altair/mixins/_AssertMixin',
+    'altair/plugins/node!path',
+    'altair/plugins/node!fs'
 ], function (declare,
              _,
              _HasSchemaMixin,
@@ -30,6 +31,7 @@ define(['altair/facades/declare',
              ModelExtension,
              HttpResponseValuesExtension,
              NoopExtension,
+             ServiceExtension,
              _AssertMixin,
              pathUtil,
              fs) {
@@ -37,23 +39,24 @@ define(['altair/facades/declare',
     return declare([_HasSchemaMixin, _HasCommandersMixin, _HasServerStrategiesMixin, _AssertMixin], {
 
         //all the strategies we have registered, key is name, value is nexus id
-        _strategies:    null,
+        _strategies: null,
         _activeServers: null,
         _controllerFoundry: null,
 
         //during startup, lets add some extensions to make all the MVC functionality work beautifully
         startup: function (options) {
 
-            var _options            = options || this.options || {},
-                cartridge           = _options.extensionCartridge || this.nexus('cartridges/Extension'),
-                httpResponse        = _options.httpResponseExtension || new HttpResponseValuesExtension(cartridge),
-                model               = _options.modelExtension || new ModelExtension(cartridge),
-                noop                = _options.noopExtension || new NoopExtension(cartridge);
+            var _options = options || this.options || {},
+                cartridge = _options.extensionCartridge || this.nexus('cartridges/Extension'),
+                httpResponse = _options.httpResponseExtension || new HttpResponseValuesExtension(cartridge),
+                model = _options.modelExtension || new ModelExtension(cartridge),
+                noop = _options.noopExtension || new NoopExtension(cartridge),
+                service = _options.serviceExtension || new ServiceExtension(cartridge);
 
             this._activeServers = [];
 
             //drop in new extensions
-            this.deferred = cartridge.addExtensions([model, httpResponse, noop]).then(this.hitch(function () {
+            this.deferred = cartridge.addExtensions([model, httpResponse, noop, service]).then(this.hitch(function () {
 
                 return this;
 
@@ -124,9 +127,9 @@ define(['altair/facades/declare',
 
             //create a app
             appPath = fs.existsSync(appPath + '.js') ? appPath : 'models/App';
-            name    = _options.vendor + ':*';
+            name = _options.vendor + ':*';
 
-            return this.forge(appPath, _options, { type: 'app', name: name, parent: null }).then(function (app) {
+            return this.forge(appPath, _options, {type: 'app', name: name, parent: null}).then(function (app) {
 
                 this._nexus.set(app.name, app);
                 return app.execute();

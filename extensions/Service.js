@@ -2,29 +2,31 @@ define(['altair/facades/declare',
         'altair/cartridges/extension/extensions/_Base',
         'altair/Deferred',
         'altair/plugins/node!path',
-        'altair/facades/mixin'],
+        'altair/facades/mixin',
+        'altair/facades/hitch'],
 
     function (declare,
               _Base,
               Deferred,
               pathUtil,
-              mixin) {
+              mixin,
+              hitch) {
 
         return declare([_Base], {
 
-            name: 'controller-model',
-            _handles: ['controller', 'app', 'module', 'model'],
+            name: 'controller-service',
+            _handles: ['controller', 'app', 'module', 'service'],
             extend: function (Module) {
 
                 Module.extendOnce({
-                    modelPath: './models',
-                    model: function (named, options, config) {
+                    servicePath: './services',
+                    service: function (named, options, config) {
 
-                        var _p = named.search(':') === -1 ?  this.resolvePath(pathUtil.join(this.modelPath, named)) : '',
+                        var _p = named.search(':') === -1 ?  this.resolvePath(pathUtil.join(this.servicePath, named)) : '',
                             _c = mixin({
-                                type: 'model',
+                                type: 'service',
                                 cache: true,
-                                name: this.name.split('/')[0] + '/models/' + named
+                                name: this.name.split('/')[0] + '/services/' + named
                             }, config || {});
 
                         //if it's a nexus name, pass it off
@@ -41,12 +43,11 @@ define(['altair/facades/declare',
                                 throw new Error('Could not resolve ' + parent);
                             }
 
-                            return _p.model(name, options, config);
+                            return _p.service(name, options, config);
 
                         }
 
                         return this.forgeSync(_p, options, _c);
-
 
                     }
                 });
